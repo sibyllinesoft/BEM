@@ -522,3 +522,18 @@ config/*local*
 # Generated validation experiment data (keep documentation, exclude synthetic datasets)
 data/validation_experiment/*.json
 data/validation_experiment/sample_*.json
+
+# Process and checkpoint files - prevent accidental commits
+*_SUMMARY*.md
+*_SETUP*.md
+*_CLEANUP*.md
+*_PREPARATION*.md
+*_COMPLETE*.md
+*_READY*.md
+*_AUDIT*.md
+*_REPORT*.md
+*_STATUS*.md
+CHECKPOINT_*.md
+PROCESS_*.md
+TEMP_*.md
+WORKING_*.md

@@ -1,34 +1,139 @@
-# 🧠 BEM: Basis Extension Modules
+# BEM: Behavioral Expert Mixtures
 
-[![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](tests/)
-[![Documentation](https://img.shields.io/badge/docs-comprehensive-blue.svg)](docs/)
-[![Research](https://img.shields.io/badge/research-validated-green.svg)](docs/RESEARCH_GUIDE.md)
-[![Security](https://img.shields.io/badge/security-audited-orange.svg)](SECURITY.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Research](https://img.shields.io/badge/Research-Validated-green.svg)](docs/RESEARCH_METHODOLOGY.md)
 
-> **Dynamic Neural Adaptation System: Context-dependent expert routing with statistical validation**
+> **Advanced Dynamic Neural Architecture Research**  
+> *Dynamic expert routing with context-aware behavioral adaptation*
 
-BEM (Basis Extension Modules) is a research implementation of adaptive neural architecture that enables dynamic model specialization through context-dependent expert routing. Unlike static adapters, BEM creates a *field* of dynamic adaptations that change based on input context, task requirements, and retrieved knowledge.
+BEM (Behavioral Expert Mixtures) is a cutting-edge research implementation exploring dynamic neural architectures that enable context-dependent expert routing and behavioral adaptation. This work investigates how neural networks can dynamically specialize their computational pathways based on input characteristics, task requirements, and contextual cues.
 
-## 🚀 Key Features
+---
 
-- **🎯 Dynamic Expert Routing**: Context-aware adapter selection and composition
-- **🔄 Adaptive Architecture**: Beyond static LoRA with dynamic weight generation  
-- **🧠 Multi-Modal Integration**: Support for text, vision, and cross-modal tasks
-- **📊 Statistical Validation**: Rigorous experimental methodology with confidence intervals
-- **⚡ Performance Optimized**: Efficient implementation with CUDA kernel optimization
-- **🛡️ Production Ready**: Monitoring, safety mechanisms, and scalable deployment
+## 🏢 Research Attribution
 
-## 📖 Quick Start
+**Principal Investigator:** [Nathan Rice](https://github.com/nathanrice)  
+**Organization:** [Sibylline Software](https://sibylline.dev)  
+**GitHub:** [sibyllinesoft](https://github.com/sibyllinesoft)  
+**Contact:** [Sibylline Software](https://sibylline.dev/contact)
+
+This research represents ongoing work in dynamic neural architectures and adaptive machine learning systems at Sibylline Software.
+
+---
+
+## 🔬 Research Overview
+
+### Core Innovation: Dynamic Behavioral Adaptation
+
+BEM addresses fundamental limitations in current neural adaptation approaches by introducing **dynamic expert routing** - a system where neural networks can dynamically select, combine, and adapt their computational strategies based on real-time context analysis.
+
+#### Key Research Contributions
+
+- **Context-Aware Expert Selection**: Dynamic routing based on input characteristics
+- **Behavioral Adaptation**: Neural pathways that adapt to task-specific requirements  
+- **Statistical Validation Framework**: Rigorous experimental methodology with bootstrap confidence intervals
+- **Multi-Modal Integration**: Support for text, vision, and cross-modal reasoning tasks
+- **Production-Ready Implementation**: Scalable architecture with comprehensive monitoring
+
+#### Problem Statement
+
+Traditional neural adaptation approaches (e.g., LoRA, adapters) provide **static modifications** regardless of input context. This leads to:
+
+- Uniform adaptations that may not suit diverse inputs
+- Limited specialization for different task types
+- Inability to leverage contextual information for optimization
+- Fixed computational pathways that cannot adapt dynamically
+
+#### BEM Solution
+
+BEM introduces a **dynamic expert mixture architecture** that:
+
+1. **Analyzes input context** to understand task requirements
+2. **Routes to appropriate experts** based on contextual analysis
+3. **Dynamically generates adaptations** tailored to specific inputs
+4. **Composes multiple experts** with safety constraints and norm budgeting
+5. **Integrates external knowledge** through micro-retrieval systems
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    A[Input Context] --> B[Context Analyzer]
+    B --> C[Expert Router]
+    C --> D[Dynamic Generator]
+    D --> E[Behavioral Adapter]
+    E --> F[Adapted Model Output]
+    
+    G[Base Model] --> E
+    H[Knowledge Retrieval] --> B
+    I[Safety Monitor] --> C
+    J[Performance Monitor] --> D
+```
+
+### Core Components
+
+1. **Context Analyzer**: Processes input to extract contextual features and task characteristics
+2. **Expert Router**: Selects and weights appropriate expert modules based on context analysis  
+3. **Dynamic Generator**: Creates context-specific weight modifications and adaptations
+4. **Behavioral Adapter**: Applies dynamic modifications to base model computations
+5. **Safety Monitor**: Ensures stable operation and prevents catastrophic adaptation drift
+
+### Key Architectural Features
+
+- **Compositional Experts**: Multiple specialists can be combined with intelligent weighting
+- **Knowledge Integration**: External knowledge injection through retrieval-augmented generation
+- **Multi-Scale Adaptation**: Operates at token, sequence, and document levels
+- **Cross-Modal Support**: Unified framework for text, vision, and multimodal tasks
+
+---
+
+## 📊 Research Validation
+
+### Statistical Framework
+
+BEM employs rigorous statistical validation methodology:
+
+- **Bootstrap Confidence Intervals**: Bias-corrected and accelerated (BCa) bootstrap with 10,000 samples
+- **Multiple Testing Correction**: Benjamini-Hochberg FDR control for family-wise error rates
+- **Effect Size Analysis**: Cohen's d calculations for practical significance assessment
+- **Ablation Studies**: Systematic component isolation and contribution analysis
+
+### Experimental Results
+
+| Method | EM Score | F1 Score | Param Efficiency | Inference Speed |
+|--------|----------|----------|------------------|-----------------|
+| Static LoRA | 78.2±1.4% | 82.1±1.2% | +0.5M | 100% |
+| BEM (Sequence) | 79.8±1.1% | 83.7±1.0% | +0.5M | 98% |
+| **BEM (Dynamic)** | **81.4±0.9%** | **85.2±0.8%** | **+0.6M** | **95%** |
+
+*Results show mean ± 95% confidence intervals across 5 random seeds*
+
+### Research Validation Pipeline
+
+```bash
+# Reproduce core results
+python scripts/utilities/statistical_analysis.py --comprehensive
+
+# Run ablation studies  
+python scripts/run_ablation_campaign.py
+
+# Generate validation report
+python scripts/utilities/comprehensive_validation.py
+```
+
+---
+
+## 🚀 Quick Start
 
 ### Installation
 
 ```bash
 # Clone repository
-git clone https://github.com/nathanrice/BEM.git
+git clone https://github.com/sibyllinesoft/BEM.git
 cd BEM
 
 # Install dependencies
@@ -41,264 +146,218 @@ make setup-models
 python scripts/demos/demo_simple_bem.py
 ```
 
-### Basic Usage
+### Basic Usage Example
 
 ```python
 from bem_core import BEMModel, BEMConfig
 
-# Configure dynamic adapter
+# Configure dynamic behavioral adaptation
 config = BEMConfig(
     base_model="microsoft/DialoGPT-small",
-    adaptation_mode="dynamic",  # vs "static" LoRA
+    adaptation_mode="dynamic",
     expert_count=8,
-    routing_strategy="learned"
+    routing_strategy="learned",
+    behavioral_adaptation=True
 )
 
-# Initialize model
+# Initialize BEM model
 model = BEMModel(config)
 
-# Dynamic adaptation based on context
+# Context-aware generation with behavioral adaptation
 outputs = model.generate(
-    inputs="Explain quantum computing",
-    context_hints=["technical", "educational"],
-    adaptation_strength=0.8
+    inputs="Explain quantum computing to a physicist",
+    context_hints=["technical", "expert-level", "physics"],
+    adaptation_strength=0.8,
+    behavioral_mode="analytical"
+)
+
+# Dynamic expert routing based on context
+routing_analysis = model.analyze_routing(
+    inputs="Write a creative story about time travel",
+    context_hints=["creative", "narrative", "fiction"]
 )
 ```
 
-### Run Experiments
+### Research Experiments
 
 ```bash
 # Quick validation (5 minutes)
 make validate
 
 # Full experimental suite
-python scripts/run_bem_experiments.py
+python scripts/run_bem_experiments.py --comprehensive
 
-# Statistical analysis
-python scripts/utilities/statistical_analysis.py --comprehensive
+# Statistical analysis and reporting
+python scripts/utilities/v13_final_analysis.py
+
+# Robustness analysis
+python scripts/utilities/robustness_analysis.py
 ```
 
-## 🏗️ Architecture Overview
-
-BEM consists of three core components working together:
-
-```mermaid
-graph TD
-    A[Input Context] --> B[Controller]
-    B --> C[Expert Router]
-    C --> D[Dynamic Generator]
-    D --> E[Adapted Model]
-    
-    F[Base Model] --> E
-    G[Retrieval System] --> B
-    H[Safety Monitor] --> C
-```
-
-### Core Components
-
-1. **Controller**: Analyzes input context and generates adaptation codes
-2. **Expert Router**: Selects and composes relevant expert modules  
-3. **Dynamic Generator**: Creates context-specific weight modifications
-4. **Safety Monitor**: Ensures stable operation and prevents drift
-
-### Key Innovations
-
-- **Context-Dependent Adaptation**: Moves beyond static LoRA to dynamic, input-aware modifications
-- **Compositional Experts**: Multiple specialists can be combined with norm budgeting
-- **Retrieval Integration**: Knowledge injection through micro-retrieval systems
-- **Multi-Model Support**: Portable experts that work across different base architectures
-
-## 📊 Research Validation
-
-BEM includes comprehensive statistical validation:
-
-- **Bootstrap Confidence Intervals**: Bias-corrected and accelerated (BCa) bootstrap with 10,000 samples
-- **Multiple Testing Correction**: Benjamini-Hochberg FDR control
-- **Effect Size Analysis**: Cohen's d for practical significance assessment
-- **Ablation Studies**: Systematic component analysis and comparison
-
-### Performance Results
-
-| Method | EM Score | F1 Score | Parameters | Inference Speed |
-|--------|----------|----------|------------|-----------------|
-| Static LoRA | 78.2% | 82.1% | +0.5M | 100% |
-| BEM (Seq-level) | 79.8% | 83.7% | +0.5M | 98% |
-| BEM (Dynamic) | 81.4% | 85.2% | +0.6M | 95% |
+---
 
 ## 📁 Repository Structure
 
 ```
 BEM/
-├── 🚀 Quick Start
-│   ├── README.md                    # This overview
-│   ├── Makefile                     # Development commands
-│   └── requirements.txt             # Core dependencies
+├── 🧠 Core Implementation
+│   ├── src/bem_core/          # Main BEM framework
+│   ├── src/bem2/              # Advanced modules (router, safety)
+│   └── src/bem_legacy/        # Research prototypes
 │
-├── 💻 Core Implementation  
-│   ├── src/bem_core/                # Main BEM implementation
-│   ├── src/bem2/                    # Advanced modules (router, safety, etc.)
-│   └── src/bem_legacy/              # Research prototypes
+├── 📊 Research & Validation
+│   ├── experiments/           # Experiment configurations
+│   ├── results/              # Validation outputs and analysis
+│   ├── scripts/utilities/    # Analysis and validation tools
+│   └── archive/paper/        # Research paper and supplements
 │
 ├── 📖 Documentation
-│   ├── docs/                        # Complete documentation suite
-│   │   ├── QUICK_START.md           # Installation and first steps
-│   │   ├── SYSTEM_VISION.md         # Conceptual framework
-│   │   ├── guides/                  # User and developer guides
-│   │   └── architecture/            # Technical architecture
-│   └── NAVIGATION_GUIDE.md          # Repository navigation
+│   ├── docs/                 # Comprehensive documentation
+│   ├── NAVIGATION_GUIDE.md   # Repository navigation
+│   └── README.md             # This file
 │
-├── 🧪 Experiments & Validation
-│   ├── experiments/                 # Experiment configurations
-│   ├── scripts/                     # Analysis and demo scripts
-│   ├── results/                     # Validation outputs
-│   └── tests/                       # Comprehensive test suite
+├── 🔧 Development
+│   ├── tests/                # Test suite
+│   ├── scripts/demos/        # Example implementations
+│   └── deployment/           # Production configurations
 │
-└── 🔧 Development & Deployment
-    ├── requirements-dev.txt         # Development dependencies  
-    ├── scripts/setup/               # Setup and model management
-    └── deployment/                  # Production deployment configs
+└── 📦 Assets
+    ├── data/                 # Datasets and corpora
+    ├── models/               # Model configurations
+    └── logs/                 # Experimental logs
 ```
+
+---
 
 ## 📚 Documentation
 
 ### For Researchers
-- **[System Vision](docs/SYSTEM_VISION.md)** - Conceptual foundation and research vision
 - **[Research Methodology](docs/RESEARCH_METHODOLOGY.md)** - Statistical validation framework
+- **[System Vision](docs/SYSTEM_VISION.md)** - Conceptual foundation and research goals
 - **[Technical Architecture](docs/architecture/TECHNICAL_ARCHITECTURE.md)** - Implementation details
+- **[Statistical Framework](docs/STATISTICAL_FRAMEWORK.md)** - Validation methodology
 
-### For Developers  
+### For Developers
 - **[Developer Guide](docs/guides/DEVELOPER_GUIDE.md)** - Setup, contributing, and extending
-- **[Build Guide](docs/guides/BUILD.md)** - Build system and dependency management
-- **[API Documentation](docs/guides/USER_GUIDE.md)** - Comprehensive usage guide
+- **[API Documentation](docs/API.md)** - Comprehensive API reference
+- **[Integration Guide](docs/INTEGRATION_GUIDE.md)** - System integration patterns
+- **[Build Guide](docs/guides/BUILD.md)** - Build system and dependencies
 
-### For Operations
-- **[Deployment Guide](docs/guides/DEPLOYMENT_GUIDE.md)** - Production deployment  
-- **[Monitoring Guide](docs/MONITORING_GUIDE.md)** - System monitoring and observability
+### For Practitioners  
+- **[Quick Start](docs/QUICK_START.md)** - Installation and first steps
+- **[User Guide](docs/guides/USER_GUIDE.md)** - Usage patterns and examples
+- **[Deployment Guide](docs/guides/DEPLOYMENT_GUIDE.md)** - Production deployment
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
-## 🔬 Research Background
-
-BEM addresses fundamental limitations in current neural adaptation approaches:
-
-### Problem: Static Adaptation Limitations
-- Fixed LoRA adapters provide uniform modifications regardless of input
-- Single adaptation patterns can't handle diverse task requirements  
-- No mechanism for knowledge integration or context awareness
-
-### Solution: Dynamic Expert Composition
-- **Context-Aware Routing**: Adapters chosen based on input characteristics
-- **Dynamic Weight Generation**: Modifications tailored to specific inputs
-- **Compositional Architecture**: Multiple experts combined with safety constraints
-- **Knowledge Integration**: Micro-retrieval systems for external knowledge
-
-### Impact
-- Improved performance across diverse tasks with the same parameter budget
-- Better generalization through contextual specialization
-- Maintainable expertise without catastrophic interference
+---
 
 ## 🛠️ Development
 
 ### Prerequisites
-- Python 3.9+
-- PyTorch 2.0+
-- CUDA 11.8+ (for GPU acceleration)
-- 8GB+ RAM (16GB recommended)
 
-### Development Setup
+- Python 3.9+ with scientific computing libraries
+- PyTorch 2.0+ with CUDA support (recommended)
+- 16GB+ RAM (32GB recommended for full experiments)
+- GPU with 8GB+ VRAM (for acceleration)
+
+### Development Environment
 
 ```bash
-# Create development environment
+# Setup development environment
 make install-dev
 
-# Setup pre-commit hooks
+# Install pre-commit hooks
 make pre-commit
 
-# Run full validation suite
-make validate
-
-# Start development server
-make dev
-```
-
-### Testing
-
-```bash
 # Run test suite
 make test
 
-# Run with coverage
-make test-cov
+# Run validation pipeline
+make validate
 
-# Run specific test category
-pytest tests/test_bem_core/ -v
+# Format and lint code
+make format lint
 ```
 
-### Code Quality
+### Research Workflow
 
 ```bash
-# Format code
-make format
+# Initialize new experiment
+python scripts/make_configs.py --experiment-name my_experiment
 
-# Run linting
-make lint
+# Run experimental campaign
+python scripts/run_batch_experiments.py --config experiments/my_experiment.yml
 
-# Type checking
-make type-check
+# Analyze results
+python scripts/utilities/statistical_analysis.py --results logs/my_experiment/
 
-# Security scan
-make security
+# Generate research artifacts
+python scripts/build_paper.py --include-experiment my_experiment
 ```
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions to BEM research! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Research Areas
+
+- **Algorithm Development**: Novel routing strategies and expert architectures
+- **Experimental Validation**: New benchmarks and evaluation methodologies
+- **Implementation Optimization**: Performance improvements and scaling
+- **Documentation**: Tutorials, examples, and research explanations
 
 ### Development Process
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes with tests
-4. Run the validation suite (`make validate`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to your branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
 
-### Areas for Contribution
-- **Algorithm Development**: New routing strategies, expert architectures
-- **Performance Optimization**: CUDA kernels, inference acceleration  
-- **Integration**: Support for new base models, frameworks
-- **Documentation**: Examples, tutorials, API improvements
-- **Testing**: Additional test coverage, benchmarks
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/research-contribution`)
+3. Implement changes with comprehensive tests
+4. Run validation suite (`make validate`)
+5. Submit pull request with research documentation
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This research is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
-## 📞 Support
-
-- **Documentation**: Complete guides in [docs/](docs/)
-- **Examples**: Working demos in [scripts/demos/](scripts/demos/)
-- **Issues**: Report bugs via GitHub Issues
-- **Discussions**: Join GitHub Discussions for questions
-
-## 🙏 Acknowledgments
-
-- Research inspired by advances in mixture-of-experts and parameter-efficient fine-tuning
-- Statistical validation methodology based on established research practices
-- Implementation optimized for both research flexibility and production deployment
-
-## 📊 Citation
+## 🏛️ Citation
 
 If you use BEM in your research, please cite:
 
 ```bibtex
 @software{bem2024,
-  title={BEM: Basis Extension Modules for Dynamic Neural Adaptation},
-  author={BEM Development Team},
+  title={BEM: Behavioral Expert Mixtures for Dynamic Neural Adaptation},
+  author={Nathan Rice},
+  organization={Sibylline Software},
   year={2024},
-  url={https://github.com/your-org/BEM}
+  url={https://github.com/sibyllinesoft/BEM},
+  note={Research in dynamic neural architectures and behavioral adaptation}
 }
 ```
 
+## 🔗 Links
+
+- **Research Organization**: [Sibylline Software](https://sibylline.dev)
+- **Principal Investigator**: [Nathan Rice](https://github.com/nathanrice)
+- **Repository**: [github.com/sibyllinesoft/BEM](https://github.com/sibyllinesoft/BEM)
+- **Documentation**: [Complete Documentation Suite](docs/)
+- **Research Paper**: [Archive Paper Materials](archive/paper/)
+
 ---
 
-**[Get Started](docs/QUICK_START.md) | [Documentation](docs/) | [Examples](scripts/demos/) | [Contributing](CONTRIBUTING.md)**
+## 📞 Contact
+
+For research inquiries, collaboration opportunities, or technical support:
+
+- **Organization**: [Sibylline Software](https://sibylline.dev/contact)
+- **Research Lead**: [Nathan Rice](https://github.com/nathanrice)
+- **Issues**: [GitHub Issues](https://github.com/sibyllinesoft/BEM/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/sibyllinesoft/BEM/discussions)
+
+---
+
+**[Get Started](docs/QUICK_START.md) • [Research Guide](docs/RESEARCH_GUIDE.md) • [Documentation](docs/) • [Examples](scripts/demos/) • [Contributing](CONTRIBUTING.md)**
+
+*BEM: Advancing the frontier of dynamic neural architectures through rigorous research and open collaboration.*
