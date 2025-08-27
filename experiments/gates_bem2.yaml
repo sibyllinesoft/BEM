@@ -1,0 +1,211 @@
+# BEM 2.0 Acceptance Gates Configuration
+# Based on TODO.md requirements with strict statistical validation
+version: "2.0"
+
+# Global settings
+statistics:
+  bootstrap_iterations: 10000
+  confidence_level: 0.95
+  fdr_correction: true
+  paired_comparisons: true
+  ci_requirement: true  # CI lower bound > 0 post-FDR
+
+slices:
+  primary: "slice_b"  # Slice-B (Full) is the gatekeeper
+  secondary: "slice_a"  # Slice-A (Retrieval-Strong) for side reporting
+
+# Pillar-specific acceptance gates
+pillars:
+  AR1:  # Agentic Router
+    name: "Agentic Router"
+    gates:
+      - name: "slice_b_improvement"
+        description: "Slice-B CI>0 on ≥1 core metric"
+        type: "statistical"
+        requirement: "ci_lower_bound > 0"
+        metrics: ["em", "f1", "exact_match", "chrf"]
+        min_significant_metrics: 1
+        fdr_corrected: true
+      
+      - name: "latency_constraint"
+        description: "p50 ≤ +15% latency increase"
+        type: "performance"
+        requirement: "p50_increase_percent <= 15.0"
+        measurement: "latency_p50"
+        baseline_comparison: true
+      
+      - name: "monotonicity_preservation"
+        description: "Index-swap monotonicity intact"
+        type: "robustness"
+        requirement: "monotonicity_pass_rate >= 0.80"
+        test_suite: "index_swap"
+      
+      - name: "flip_rate_stability"
+        description: "Flip rate not increased"
+        type: "stability"
+        requirement: "flip_rate_increase <= 0.05"
+        measurement: "routing_flip_rate"
+        baseline_comparison: true
+
+  OL0:  # Online Learning
+    name: "Online Learning"
+    gates:
+      - name: "soak_test"
+        description: "24h soak: no canary regressions"
+        type: "stability"
+        requirement: "canary_pass_rate >= 1.0"
+        duration_hours: 24
+        canary_suite: "standard"
+      
+      - name: "drift_monitoring"
+        description: "Drift monitors never trip"
+        type: "drift"
+        requirement: "drift_alerts == 0"
+        monitors: ["kl_divergence", "sigma_caps"]
+        kl_threshold: 0.1
+        sigma_threshold: 2.0
+      
+      - name: "aggregate_improvement"
+        description: "+≥1% aggregate improvement"
+        type: "performance"
+        requirement: "aggregate_improvement >= 1.0"
+        metrics: ["em", "f1"]
+        aggregation: "weighted_average"
+
+  MM0:  # Multimodal
+    name: "Multimodal"
+    gates:
+      - name: "vqa_improvement"
+        description: "+≥2% on VQA slice"
+        type: "performance"
+        requirement: "vqa_improvement >= 2.0"
+        slice: "vqa"
+        metrics: ["em", "f1", "accuracy"]
+      
+      - name: "hallucination_reduction"
+        description: "Hallucination rate decreased"
+        type: "safety"
+        requirement: "hallucination_rate_change < 0"
+        measurement: "hallucination_rate"
+        baseline_comparison: true
+      
+      - name: "latency_constraint"
+        description: "Latency within gate (≤+15%)"
+        type: "performance"
+        requirement: "p50_increase_percent <= 15.0"
+        measurement: "latency_p50"
+        baseline_comparison: true
+
+  VC0:  # Value-Aligned Safety
+    name: "Value-Aligned Safety"
+    gates:
+      - name: "violation_reduction"
+        description: "Violations −≥30% at ≤1% EM/F1 drop"
+        type: "safety"
+        requirement: "violation_reduction >= 30.0 AND utility_drop <= 1.0"
+        violation_measurement: "harmlessness_violations"
+        utility_metrics: ["em", "f1"]
+        baseline_comparison: true
+      
+      - name: "orthogonality_penalty"
+        description: "Orthogonality penalty holds"
+        type: "constraint"
+        requirement: "orthogonality_score >= 0.9"
+        measurement: "basis_orthogonality"
+        threshold: 0.9
+
+  PT:  # Performance Track (PT*)
+    name: "Performance Track"
+    gates:
+      - name: "pareto_improvement"
+        description: "Pareto upshift OR CI-backed gains"
+        type: "efficiency"
+        requirement: "pareto_upshift == true OR ci_backed_gains == true"
+        pareto_metrics: ["quality", "latency"]
+        ci_metrics: ["em", "f1"]
+      
+      - name: "no_regressions"
+        description: "No regressions on core metrics"
+        type: "stability"
+        requirement: "regression_count == 0"
+        core_metrics: ["em", "f1", "chrf", "bleu"]
+        regression_threshold: -0.5  # More than 0.5% drop is regression
+      
+      - name: "budget_parity"
+        description: "Budget parity respected (±5%)"
+        type: "efficiency"
+        requirement: "budget_deviation <= 5.0"
+        measurements: ["parameters", "flops"]
+        baseline_comparison: true
+
+# Universal constraints applied to all pillars
+universal_constraints:
+  - name: "cache_safety"
+    description: "Cache-safety maintained"
+    requirement: "cache_safety_rate >= 0.95"
+    measurement: "cache_safety"
+  
+  - name: "budget_compliance"
+    description: "Params & FLOPs within ±5%"
+    requirement: "budget_deviation <= 5.0"
+    measurements: ["parameters", "flops"]
+    baseline_comparison: true
+  
+  - name: "statistical_rigor"
+    description: "BCa 95% CI with FDR correction"
+    requirement: "statistical_validation == true"
+    bootstrap_method: "bca"
+    ci_level: 0.95
+    fdr_method: "benjamini_hochberg"
+
+# Promotion decision logic
+promotion_rules:
+  - name: "mandatory_gates"
+    description: "All pillar-specific gates must pass"
+    logic: "AND"
+    gates: "pillar_gates"
+  
+  - name: "universal_constraints" 
+    description: "All universal constraints must pass"
+    logic: "AND"
+    gates: "universal_constraints"
+  
+  - name: "statistical_significance"
+    description: "Only CI-backed wins promoted"
+    requirement: "ci_lower_bound > 0 AND fdr_corrected == true"
+  
+  - name: "slice_b_gatekeeper"
+    description: "Slice-B is the decisive slice"
+    primary_slice: "slice_b"
+    fallback_slice: "slice_a"
+
+# Risk assessment criteria  
+risk_assessment:
+  low_risk:
+    - "all_gates_pass == true"
+    - "no_performance_regressions == true" 
+    - "budget_compliance == true"
+  
+  medium_risk:
+    - "minor_gate_failures <= 1"
+    - "performance_regression_magnitude < 1.0"
+    - "budget_deviation < 2.0"
+  
+  high_risk:
+    - "critical_gate_failures > 0"
+    - "performance_regression_magnitude >= 1.0"
+    - "budget_deviation >= 2.0"
+
+# Output requirements
+output_format:
+  winners_file: "analysis/winners.json"
+  detailed_report: "analysis/promotion_report.json"
+  summary_metrics: "analysis/promotion_summary.json"
+  
+  required_fields:
+    - "pillar_name"
+    - "promotion_decision"
+    - "gate_results"
+    - "statistical_evidence"
+    - "risk_assessment"
+    - "recommendations"

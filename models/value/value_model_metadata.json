@@ -1,0 +1,22 @@
+{
+  "model_name": "anthropic/constitutional-ai",
+  "description": "Constitutional AI model for value alignment",
+  "value_dim": 512,
+  "safety_domains": [
+    "helpfulness",
+    "harmlessness",
+    "honesty"
+  ],
+  "status": "mock",
+  "timestamp": 1755976151.5067666,
+  "components": {
+    "value_head": "Linear layer mapping to value scores",
+    "constitution_encoder": "Constitutional principles encoder",
+    "safety_classifier": "Multi-domain safety classifier"
+  },
+  "thresholds": {
+    "violation_threshold": 0.3,
+    "intervention_threshold": 0.7,
+    "high_confidence_threshold": 0.9
+  }
+}

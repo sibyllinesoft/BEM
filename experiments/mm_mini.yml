@@ -1,0 +1,263 @@
+# MM - Multimodal Mini Configuration
+# Expected: Vision integration working, format compliance, no regression on text
+
+name: "mm_multimodal_mini"
+version: "1.0"
+description: "Multimodal integration with vision features and controller coordination"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "multimodal"
+variant_id: "MM"
+training_phase: "multimodal_integration"
+
+# Model architecture (inherit from anchor)
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Multimodal Controller Configuration
+multimodal_controller:
+  enabled: true
+  
+  # Vision integration
+  vision_projector:
+    enabled: true
+    vision_dim: 768              # Vision feature dimension
+    controller_dim: 256          # Controller hidden dimension
+    projection_layers: 2         # Depth of projection network
+    activation: "gelu"
+    dropout: 0.1
+    
+  # Conflict gating
+  conflict_gate:
+    enabled: true
+    gate_threshold: 0.5          # Threshold for conflict detection
+    resolution_strategy: "blend" # "blend", "vision_priority", "text_priority"
+    blend_temperature: 0.1       # Temperature for soft blending
+    
+  # Chunk alignment
+  chunk_aligner:
+    enabled: true
+    max_chunks: 16               # Maximum chunks to process
+    alignment_method: "attention" # "attention", "similarity", "position"
+    position_encoding: true      # Add positional encoding
+    
+  # Controller coordination
+  controller_fusion:
+    fusion_method: "cross_attention"  # How to fuse vision and text
+    attention_heads: 8               # Heads for cross-attention
+    fusion_dropout: 0.1              # Dropout in fusion layer
+    
+  # Vision encoder settings
+  vision_encoder:
+    model_name: "clip-vit-base-patch32"  # Vision encoder model
+    freeze_encoder: true                 # Freeze encoder weights
+    feature_layer: -2                    # Which layer to extract features
+    image_size: 224                      # Input image size
+    patch_size: 32                       # Patch size for ViT
+
+# Training configuration
+training:
+  learning_rate: 3e-5           # Conservative LR for multimodal
+  vision_lr: 1e-5               # Lower LR for vision components
+  batch_size: 12                # Smaller batches due to vision memory
+  gradient_accumulation_steps: 4
+  max_steps: 800                # Shorter training for integration
+  warmup_steps: 80
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Multimodal-specific parameters
+  vision_weight: 0.3            # Weight for vision loss
+  text_weight: 0.7              # Weight for text loss
+  alignment_weight: 0.1         # Weight for alignment loss
+  
+  # Learning rate scheduling
+  scheduler_type: "cosine"      # Cosine for stable multimodal training
+  lr_scheduler_kwargs:
+    eta_min: 1e-7
+
+# Data configuration
+data:
+  train_file: "data/train_multimodal.jsonl"
+  validation_file: "data/val_multimodal.jsonl"
+  test_file: "data/test_multimodal.jsonl"
+  max_seq_length: 512
+  
+  # Multimodal data processing
+  image_preprocessing:
+    normalize: true
+    mean: [0.485, 0.456, 0.406]  # ImageNet normalization
+    std: [0.229, 0.224, 0.225]
+    resize: [224, 224]
+    center_crop: true
+    
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    handle_missing_images: "skip"  # Skip samples with missing images
+    max_images_per_sample: 4      # Limit images per training sample
+
+# Budget constraints (multimodal overhead)
+budget_constraints:
+  parameter_tolerance: 0.08      # 8% tolerance for vision projector
+  flop_tolerance: 0.15          # 15% tolerance for vision processing
+  memory_tolerance: 0.25        # 25% tolerance for image processing
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 400
+  logging_steps: 50
+  
+  # Multimodal performance gates
+  performance_gates:
+    no_text_regression: -0.01     # No >1% regression on text metrics
+    vision_integration_success: 0.05  # +5% on vision-text tasks
+    format_compliance: 0.95       # 95% format compliance
+    response_coherence: 0.9       # 90% coherence between modalities
+    
+  # Multimodal-specific metrics
+  metrics:
+    - "exact_match"
+    - "f1_score" 
+    - "bleu"
+    - "chrf"
+    - "vision_text_alignment"
+    - "cross_modal_consistency"
+    - "image_caption_accuracy"
+    - "visual_question_answering"
+    - "multimodal_reasoning_score"
+    - "format_adherence_multimodal"
+
+# Vision-specific evaluation
+vision_evaluation:
+  enabled: true
+  tasks:
+    - "image_captioning"         # Generate captions for images
+    - "visual_question_answering" # Answer questions about images
+    - "image_text_matching"      # Match images to descriptions
+    - "visual_reasoning"         # Reason about visual content
+    
+  benchmarks:
+    - name: "COCO_Captions"
+      metric: "CIDEr"
+      threshold: 0.8
+    - name: "VQA_v2"
+      metric: "Accuracy"
+      threshold: 0.6
+    - name: "CLEVR"
+      metric: "Accuracy" 
+      threshold: 0.7
+
+# Alignment and coherence monitoring
+alignment_monitoring:
+  enabled: true
+  check_frequency: 25           # Monitor every N steps
+  
+  alignment_metrics:
+    - "vision_text_similarity"   # Cosine similarity between modalities
+    - "cross_attention_weights"  # Attention pattern analysis
+    - "feature_correlation"      # Correlation between feature spaces
+    - "semantic_consistency"     # Semantic alignment check
+    
+  coherence_checks:
+    - "response_relevance"       # Response relevant to both text and image
+    - "factual_consistency"      # Facts consistent across modalities
+    - "style_consistency"        # Writing style consistency
+    - "temporal_consistency"     # Consistency over conversation turns
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "multimodal_loss"
+    - "vision_loss"
+    - "text_loss"
+    - "alignment_loss"
+    - "cross_attention_stats"
+    - "vision_feature_stats"
+    - "conflict_resolution_stats"
+    - "chunk_alignment_stats"
+    
+  wandb:
+    enabled: false
+    project: "bem_v13_multimodal"
+    tags: ["mm", "multimodal", "vision", "integration"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+# Output configuration
+output:
+  output_dir: "logs/MM"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "vision_text_alignment"
+  greater_is_better: true
+
+# Hardware requirements (higher for vision)
+hardware:
+  min_gpu_memory_gb: 24         # Higher for vision processing
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: true  # Enable for memory efficiency
+
+# Vision processing optimization
+vision_optimization:
+  enabled: true
+  batch_vision_processing: true  # Process images in batches
+  cache_vision_features: true    # Cache extracted features
+  lazy_loading: true            # Load images on demand
+  image_compression: 0.8        # JPEG compression for storage
+
+# Multimodal debugging
+multimodal_debugging:
+  enabled: true
+  debug_frequency: 50
+  
+  debug_components:
+    - "vision_projector_weights"
+    - "conflict_gate_decisions"
+    - "chunk_alignment_scores"
+    - "cross_attention_patterns"
+    - "feature_distribution_stats"
+    
+  visualization:
+    save_attention_maps: true    # Save attention visualizations
+    save_feature_tsne: true      # Save t-SNE of features
+    save_alignment_plots: true   # Save alignment score plots
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/MM/training.log"
+  log_multimodal_stats: true
+  log_vision_processing: true
+  log_alignment_metrics: true
+  debug_cross_attention: false  # Detailed attention debugging
+
+# Safety checks (multimodal-specific)
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 12
+  early_stopping_min_delta: 0.002
+  
+  # Vision-specific safety
+  max_image_size_mb: 10         # Maximum image size
+  vision_gradient_clipping: 0.5  # Separate gradient clipping for vision
+  detect_vision_anomalies: true  # Detect unusual vision inputs

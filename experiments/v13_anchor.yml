@@ -1,0 +1,41 @@
+base_config: performance_variant.yaml
+name: v13_anchor
+description: BEM v1.3 stack - production anchor with SVD init + low-rank+diag + hard-negs
+  + FP8 generator
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_v13_stack
+bem_config:
+  rank: 8
+  num_experts: 2
+  chunk_size: 128
+  alpha: 16.0
+  dropout: 0.1
+  svd_init: true
+  low_rank_diag: true
+  hard_negatives: true
+  fp8_generator: true
+budget:
+  base_params: 124439808
+  bem_params: 524288
+  total_params: 124964096
+  approx_flops: 1000000
+  memory_mb: 512
+training:
+  learning_rate: 5e-4
+  batch_size: 4
+  max_steps: 1000
+  warmup_steps: 100
+  seed: 42
+evaluation:
+  metrics:
+  - exact_match
+  - f1
+  - bleu
+  - rouge
+  test_split: test
+metadata:
+  variant_type: anchor
+  stack_version: v1.3
+  validation_role: baseline
+  budget_role: parity_anchor

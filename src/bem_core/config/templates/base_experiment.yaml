@@ -1,0 +1,134 @@
+# Base Experiment Configuration Template
+# This template provides sensible defaults for all BEM experiments
+# Individual experiments can inherit from this and override specific values
+
+# Experiment metadata
+name: "base_experiment"
+version: "1.0"
+description: "Base template for BEM experiments"
+experiment_type: "training"
+variant_id: null
+
+# Model configuration
+model:
+  base_model: "microsoft/DialoGPT-small"  # Lightweight default for testing
+  model_path: null
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+  intermediate_size: 3072
+  torch_dtype: "float32"
+  attn_implementation: "eager"
+  custom_params: {}
+
+# Data configuration
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  max_samples: null
+  add_special_tokens: true
+  truncation: true
+  padding: "max_length"
+  dataloader_num_workers: 0
+  dataloader_pin_memory: true
+
+# Training configuration
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  gradient_accumulation_steps: 1
+  max_steps: 1000
+  max_epochs: null
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+  
+  # Evaluation and logging
+  eval_strategy: "steps"
+  eval_steps: 100
+  logging_steps: 50
+  save_steps: 500
+  
+  # Early stopping
+  early_stopping_patience: null
+  early_stopping_threshold: 0.0
+  
+  # Optimization
+  fp16: false
+  bf16: false
+  gradient_checkpointing: false
+  
+  # Reproducibility
+  seed: 42
+  deterministic: true
+
+# Hardware configuration
+hardware:
+  device: null  # Auto-detect
+  gpu_ids: null
+  mixed_precision: "no"
+  gradient_checkpointing: false
+  distributed: false
+  local_rank: -1
+  min_gpu_memory_gb: null
+  preferred_gpu: null
+
+# Logging configuration
+logging:
+  level: "INFO"
+  log_file: null  # Will be set based on output_dir
+  console_output: true
+  
+  # Experiment tracking (disabled by default)
+  wandb_enabled: false
+  wandb_project: null
+  wandb_entity: null
+  wandb_tags: []
+  wandb_config: {}
+  
+  mlflow_enabled: false
+  mlflow_tracking_uri: null
+  mlflow_experiment_name: null
+  
+  # Telemetry
+  log_frequency: 10
+  metrics_to_log: []
+
+# Output configuration
+output_dir: "logs/base_experiment"
+save_total_limit: 3
+load_best_model_at_end: true
+metric_for_best_model: "eval_loss"
+greater_is_better: false
+
+# Reproducibility
+seed: 42
+deterministic: true
+
+# Budget constraints (default: no constraints)
+budget_constraints:
+  parameter_tolerance: 0.05  # ±5%
+  memory_tolerance: 0.10     # ±10%
+  enforce_constraints: false
+  abort_on_violation: false
+
+# Quality gates (default: basic validation)
+quality_gates:
+  min_eval_samples: 100
+  max_eval_loss: 10.0
+  convergence_patience: 10
+
+# Safety settings
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.001

@@ -1,0 +1,317 @@
+# BEM Phase 4: Multi-BEM Composition Configuration
+# Composition of two BEMs with trust-region projection and spectral governance
+
+experiment_id: "bem_p4_composition"
+method_type: "bem"
+phase: "P4"
+approach: "multi_bem_composition"
+
+# Model Configuration
+model:
+  base_model: "microsoft/DialoGPT-medium"  # Must match baseline
+  quantization: "int8"  # Identical to baselines
+  precision: "bf16"
+
+# Multi-BEM Configuration
+bem_composition:
+  # Two specialized BEMs
+  bem_instances:
+    - name: "domain_bem"
+      specialization: "domain_qa"
+      priority: 1.0
+      
+      # Controller-Generator Architecture (inherited from P3)
+      controller:
+        type: "retrieval_aware"
+        hidden_dim: 256
+        num_layers: 2
+        activation: "gelu"
+        dropout: 0.1
+        
+        features:
+          - "coverage"
+          - "consistency"
+          - "uncertainty"
+          - "query_length"
+          - "domain_signal"
+      
+      generator:
+        type: "mlp"
+        hidden_dims: [512, 256]
+        rank: 16  # Same as baselines
+        alpha: 32
+        dropout: 0.1
+        
+        # Attach to domain-specific modules
+        target_modules:
+          - "c_attn"     # Q, K, V for domain adaptation
+          - "c_fc"       # MLP for domain knowledge
+    
+    - name: "style_bem"
+      specialization: "style_format"
+      priority: 0.8
+      
+      controller:
+        type: "style_aware"
+        hidden_dim: 256
+        num_layers: 2
+        activation: "gelu"
+        dropout: 0.1
+        
+        features:
+          - "style_signal"
+          - "format_requirements"
+          - "output_constraints"
+          - "length_preference"
+      
+      generator:
+        type: "mlp"
+        hidden_dims: [512, 256]
+        rank: 16  # Same rank for fair comparison
+        alpha: 32
+        dropout: 0.1
+        
+        # Attach to style-specific modules
+        target_modules:
+          - "c_proj"     # Output projection for style
+          - "c_proj_mlp" # MLP output for formatting
+
+  # Composition Strategy
+  composition:
+    method: "trust_region_projection"
+    
+    # Subspace Reservation
+    subspace_reservation:
+      enabled: true
+      method: "orthogonal_projection"
+      overlap_penalty: 1.0
+      
+      # Reserve non-overlapping subspaces for each BEM
+      domain_subspace_dim: 8   # Half of rank=16
+      style_subspace_dim: 8    # Other half of rank=16
+    
+    # Trust Region Projection
+    trust_region:
+      enabled: true
+      radius: 1.0  # Frobenius norm constraint
+      projection_method: "spectral"
+      
+      # Per-layer trust regions
+      layer_specific_radius: true
+      radius_schedule: "constant"  # vs "adaptive"
+    
+    # Spectral Governance (enhanced from P3)
+    spectral_governance:
+      global_spectral_clamp: true
+      per_bem_spectral_clamp: true
+      spectral_threshold: 2.0
+      
+      # Composition-specific governance
+      composition_spectral_budget: 3.0
+      interference_detection: true
+      interference_threshold: 0.1
+    
+    # Dynamic Weighting
+    dynamic_weighting:
+      enabled: true
+      method: "confidence_based"
+      
+      # Weight based on controller confidence
+      confidence_threshold: 0.7
+      min_weight: 0.1
+      max_weight: 1.0
+
+# Hierarchical Routing (inherited from P2)
+routing:
+  type: "hierarchical"
+  levels:
+    - "prefix"    # Sequence-level routing
+    - "chunk"     # N=32 token chunks
+    - "token"     # Token-level (MLP only)
+  
+  chunk_size: 32
+  chunk_overlap: 4
+  
+  # Cache-safe implementation
+  cache_policy:
+    qkv_level: "chunk"  # Chunk-wise Q/K/V caching
+    mlp_level: "token"  # Token-level MLP routing
+    ema_beta: 0.95      # Exponential moving average
+
+# Training Configuration (identical to baselines)
+training:
+  learning_rate: 2e-4
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  max_steps: 1000
+  save_strategy: "steps"
+  save_steps: 200
+  evaluation_strategy: "steps"
+  eval_steps: 100
+  logging_steps: 50
+  
+  # Composition-specific losses
+  composition_loss_weight: 0.05
+  orthogonality_loss_weight: 0.01
+  interference_penalty_weight: 0.02
+  
+  # Optimizer
+  optimizer: "adamw_torch"
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+
+# Dataset Configuration
+datasets:
+  train:
+    # Mixed dataset for multi-skill training
+    - name: "domain_qa_train"
+      path: "data/domain_qa/train.jsonl"
+      split: "train"
+      max_samples: 3000
+      bem_target: "domain_bem"
+    - name: "style_tasks_train"
+      path: "data/style_tasks/train.jsonl"
+      split: "train"
+      max_samples: 2000
+      bem_target: "style_bem"
+    - name: "mixed_instruction_train"
+      path: "data/instruction/mixed_train.jsonl"
+      split: "train"
+      max_samples: 3000
+      bem_target: "both"  # Both BEMs should handle
+      
+  validation:
+    - name: "domain_qa_val"
+      path: "data/domain_qa/val.jsonl"
+      split: "validation"
+      bem_target: "domain_bem"
+    - name: "style_tasks_val"
+      path: "data/style_tasks/val.jsonl"
+      split: "validation"
+      bem_target: "style_bem"
+    - name: "mixed_instruction_val"
+      path: "data/instruction/mixed_val.jsonl"
+      split: "validation"
+      bem_target: "both"
+      
+  test:
+    - name: "nq_open_small"
+      path: "data/nq_open/test_small.jsonl"
+      split: "test"
+      bem_target: "domain_bem"
+    - name: "style_benchmark"
+      path: "data/style_tasks/test.jsonl"
+      split: "test"
+      bem_target: "style_bem"
+    - name: "composition_test"
+      path: "data/composition/test.jsonl"
+      split: "test"
+      bem_target: "both"
+
+# Canary Task Testing (Interference Detection)
+canary_tasks:
+  enabled: true
+  tasks:
+    - name: "arithmetic"
+      path: "data/canaries/arithmetic.jsonl"
+      baseline_performance: 0.95  # Expected accuracy without BEM
+      interference_threshold: 0.02  # Max allowed degradation
+      
+    - name: "copy_task"
+      path: "data/canaries/copy_task.jsonl"
+      baseline_performance: 0.99
+      interference_threshold: 0.01
+      
+    - name: "simple_qa"
+      path: "data/canaries/simple_qa.jsonl"
+      baseline_performance: 0.90
+      interference_threshold: 0.02
+  
+  # Testing protocol
+  test_schedule: "every_eval"  # Test canaries at each evaluation
+  failure_action: "log_warning"  # vs "stop_training"
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu"
+    - "chrF"
+    - "json_validity"
+    
+  # Multi-BEM specific metrics
+  composition_metrics:
+    - "bem_utilization"      # How often each BEM is used
+    - "composition_stability" # Stability of BEM combinations
+    - "subspace_overlap"     # Overlap between BEM subspaces
+    - "interference_score"   # Quantified interference
+    - "trust_region_violations" # Trust region constraint violations
+    - "spectral_budget_usage"  # How much spectral budget is used
+    
+  # Performance metrics
+  track_latency: true
+  track_memory: true
+  profile_tokens_per_second: true
+  cache_hit_rate: true
+  
+  # Canary monitoring
+  track_canary_performance: true
+  canary_regression_threshold: 0.02
+
+# Logging Configuration
+logging:
+  log_dir: "logs/p4"
+  wandb_project: "bem_phases"
+  wandb_name: "p4_composition_dual_bem"
+  save_predictions: true
+  save_model: true
+  save_composition_decisions: true
+  save_canary_results: true
+  
+  # Detailed composition logging
+  log_bem_weights: true
+  log_subspace_projections: true
+  log_spectral_norms: true
+
+# Reproducibility
+seed: 42  # Will be overridden by script
+deterministic: true
+cuda_deterministic: true
+
+# Hardware Configuration
+hardware:
+  device: "cuda"
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  dataloader_num_workers: 4
+
+# Systems Optimization
+systems:
+  fused_kernels: true
+  kernel_path: "fused"
+  precompile_kernels: true
+  
+  # Composition-specific optimizations
+  optimize_subspace_projections: true
+  cache_orthogonal_projections: true
+
+# Validation Requirements
+validation:
+  min_eval_samples: 100
+  max_eval_samples: 1000
+  eval_batch_size: 16
+  
+  # Multi-BEM validation
+  require_bem_diversity: true
+  min_bem_utilization: 0.3  # Each BEM used at least 30% of time
+  max_subspace_overlap: 0.2  # Less than 20% subspace overlap
+  
+  # Interference validation
+  max_canary_regression: 0.02
+  require_stable_composition: true

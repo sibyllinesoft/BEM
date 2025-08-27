@@ -1,0 +1,266 @@
+# AR1 - Policy Gradient for Agentic Router - Main Configuration
+# Expected: +≥1.5% EM/F1, plan length ≤3, flip-rate stable, monotonicity intact
+
+name: "ar1_agentic_router_pg"
+version: "1.0"
+description: "TRPO-style policy gradient training for agentic router with trust region constraints"
+
+# Base configuration
+base_config: "experiments/ar0_bc.yml"  # Initialize from BC checkpoint
+experiment_type: "agentic_router"
+variant_id: "AR1"
+training_phase: "policy_gradient"
+
+# Model architecture (inherit from AR0)
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Macro Policy Configuration (same as AR0 but with PG training)
+macro_policy:
+  enabled: true
+  num_experts: 3
+  chunk_summary_dim: 512
+  retrieval_dim: 64
+  vision_dim: 768
+  value_dim: 32
+  hidden_dim: 256
+  num_layers: 3
+  dropout: 0.1
+  hysteresis_tau: 0.5          # Critical for flip-rate stability
+  max_span: 3                  # Enforce span ≤ 3 for promotion gate
+
+# Policy Gradient Configuration
+policy_gradient:
+  enabled: true
+  algorithm: "trpo"            # TRPO-style trust region
+  
+  # TRPO parameters
+  kl_divergence_limit: 0.01    # Trust region KL bound (ε in pseudocode)
+  damping_coeff: 0.1           # Damping for natural gradients
+  cg_max_iterations: 10        # Conjugate gradient iterations
+  line_search_max_iterations: 10
+  line_search_accept_ratio: 0.1
+  
+  # Value function learning
+  value_learning_rate: 1e-3    # Separate LR for value function
+  value_update_epochs: 5       # Value function update epochs
+  gae_lambda: 0.95            # GAE λ parameter
+  
+  # Trust region enforcement
+  trust_region_method: "kl_penalty"  # "kl_penalty" or "clip"
+  kl_penalty_coeff: 10.0       # Penalty coefficient
+  adaptive_kl_penalty: true    # Adaptive penalty adjustment
+
+# Reward Configuration
+reward:
+  # Reward function: 0.5*format + 0.5*tool success as specified
+  format_weight: 0.5           # Format validity component
+  tool_success_weight: 0.5     # Tool success component
+  
+  # Format scoring
+  format_metrics:
+    - "json_validity"
+    - "structure_compliance"
+    - "field_completeness"
+    - "type_consistency"
+    
+  # Tool success metrics
+  tool_success_metrics:
+    - "execution_success"
+    - "output_correctness"
+    - "error_absence"
+    - "task_completion"
+  
+  # Bonus rewards
+  plan_efficiency_bonus: 0.1   # Bonus for shorter plans
+  hysteresis_bonus: 0.05       # Bonus for stable routing
+  consistency_bonus: 0.05      # Bonus for consistent expert usage
+
+# Trust Region and Spectral Governance
+trust_region:
+  enabled: true
+  
+  # ΔW projection after composition
+  delta_w_projection: true     # Project ΔW after expert composition
+  projection_method: "spectral" # Spectral projection to trust region
+  max_delta_w_norm: 1.0        # Maximum allowed ΔW norm
+  fro_budget: 0.8              # Frobenius budget for ΔW
+  
+  # Action hysteresis (prevent thrashing)
+  hysteresis_threshold: 0.5    # τ in pseudocode
+  hysteresis_window: 10        # Rolling window for hysteresis decisions
+  action_smoothing: 0.9        # EMA smoothing for actions
+
+# Training configuration
+training:
+  learning_rate: 1e-5          # Lower LR for PG fine-tuning
+  policy_learning_rate: 5e-5   # Policy-specific LR
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1500              # Longer training for PG
+  warmup_steps: 150
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 0.5           # Stricter gradient clipping
+  
+  # PG-specific parameters
+  episodes_per_update: 10      # Episodes before policy update
+  max_episode_length: 20       # Max chunks per episode
+  rollout_buffer_size: 1000    # Experience buffer size
+  
+  # Learning rate scheduling
+  scheduler_type: "cosine"     # Cosine annealing for stability
+  lr_scheduler_kwargs:
+    eta_min: 1e-7
+
+# Data configuration
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  
+  # Environment configuration for RL
+  environment_config:
+    chunk_size: 32
+    max_context_length: 512
+    reward_shaping: true       # Dense rewards vs sparse
+    state_representation: "chunk_summary"
+    action_space: "discrete"   # Discrete action space
+    
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    chunk_sequences: true
+
+# Budget constraints (same as performance variants)
+budget_constraints:
+  parameter_tolerance: 0.05
+  flop_tolerance: 0.05
+  memory_tolerance: 0.10
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # AR1 promotion gates
+  performance_gates:
+    em_f1_improvement: 0.015    # +≥1.5% EM/F1 required
+    plan_length_compliance: 1.0  # 100% plans ≤3 chunks
+    flip_rate_stability: true   # Flip-rate not increased
+    index_swap_monotonicity: true  # Monotonicity intact
+    
+  # Metrics specific to agentic routing
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu"
+    - "chrf"
+    - "plan_length_mean"
+    - "plan_length_max"
+    - "flip_rate"
+    - "hysteresis_trigger_rate"
+    - "expert_utilization"
+    - "action_entropy"
+    - "value_function_accuracy"
+    - "reward_signal_quality"
+
+# Index Swap Monotonicity Testing
+index_swap_evaluation:
+  enabled: true
+  test_indices:
+    - "indices/clean.faiss"
+    - "indices/shuffled.faiss"
+    - "indices/corrupt.faiss"
+  monotonicity_threshold: 0.95  # 95% monotonicity required
+  degradation_tolerance: 0.05   # 5% performance degradation allowed
+
+# Router Audit Configuration
+router_audit:
+  enabled: true
+  audit_frequency: 100         # Audit every N steps
+  
+  metrics_to_audit:
+    - "plan_length_distribution"
+    - "expert_selection_patterns"
+    - "hysteresis_effectiveness"
+    - "action_consistency"
+    - "reward_correlation"
+    - "trust_region_violations"
+    
+  audit_thresholds:
+    max_plan_length: 3
+    min_expert_diversity: 0.3
+    max_flip_rate_increase: 0.1
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "policy_loss"
+    - "value_loss"
+    - "kl_divergence"
+    - "trust_region_violations"
+    - "plan_length_stats"
+    - "flip_rate_evolution"
+    - "expert_usage_distribution"
+    - "hysteresis_decisions"
+    - "reward_components"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_agentic"
+    tags: ["ar1", "policy_gradient", "trpo", "trust_region"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+# Output configuration
+output:
+  output_dir: "logs/AR1"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "f1_score"
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 20        # Higher for RL training
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/AR1/training.log"
+  log_policy_updates: true
+  log_trust_region_stats: true
+  log_router_decisions: true
+  debug_action_selection: false
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  enable_kl_monitoring: true      # Monitor KL divergence
+  max_consecutive_failures: 5
+  early_stopping_patience: 20    # More patience for RL
+  early_stopping_min_delta: 0.003
+  
+  # RL-specific safety
+  max_kl_divergence: 0.1         # Emergency stop threshold
+  min_reward_threshold: -10.0     # Emergency stop if rewards collapse
+  policy_entropy_floor: 0.1      # Maintain minimum exploration

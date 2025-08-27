@@ -1,0 +1,59 @@
+{
+  "harvest_summary": {
+    "total_experiments": 20,
+    "method_types": {
+      "bem": 10,
+      "baseline": 10
+    },
+    "seeds_found": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "experiment_ids": [
+      "bem_p3_retrieval_aware",
+      "bem_p4_composition",
+      "mole_baseline",
+      "static_lora_baseline"
+    ]
+  },
+  "data_completeness": {
+    "evaluation_results": {
+      "present": 20,
+      "missing": 0,
+      "completion_rate": 1.0
+    },
+    "system_telemetry": {
+      "present": 0,
+      "missing": 20,
+      "completion_rate": 0.0
+    },
+    "routing_data": {
+      "present": 0,
+      "missing": 20,
+      "completion_rate": 0.0
+    },
+    "training_metrics": {
+      "present": 0,
+      "missing": 20,
+      "completion_rate": 0.0
+    },
+    "git_sha": {
+      "present": 0,
+      "missing": 20,
+      "completion_rate": 0.0
+    },
+    "rank": {
+      "present": 0,
+      "missing": 20,
+      "completion_rate": 0.0
+    }
+  },
+  "quality_checks": {
+    "valid": true,
+    "total_experiments": 20,
+    "issues": []
+  }
+}

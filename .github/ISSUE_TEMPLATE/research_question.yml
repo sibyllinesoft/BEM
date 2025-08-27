@@ -1,0 +1,135 @@
+name: 🔬 Research Question
+description: Ask a question about BEM's research methodology or results
+title: "[Research]: "
+labels: ["research", "question", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask questions about BEM's research methodology, experimental setup, statistical analysis, or results.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Research Area
+      description: Which research area does your question relate to?
+      options:
+        - Architecture & Design
+        - Experimental Methodology
+        - Statistical Analysis
+        - Performance Evaluation
+        - Comparison Studies
+        - Ablation Studies
+        - Reproducibility
+        - Theoretical Foundation
+        - Safety & Ethics
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Research Question
+      description: What specific question do you have?
+      placeholder: |
+        Please be specific about your research question...
+        - What aspect are you trying to understand?
+        - What information are you looking for?
+        - Context for why this matters to your work
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Background
+      description: Provide context for your question
+      placeholder: |
+        Help us understand the context...
+        - Your research background or use case
+        - What you've already tried or researched
+        - Specific papers or methods you're comparing with
+
+  - type: textarea
+    id: documentation_checked
+    attributes:
+      label: Documentation Reviewed
+      description: What documentation have you already checked?
+      placeholder: |
+        Which sources have you already consulted?
+        - README and docs/ directory
+        - Research methodology documentation
+        - Statistical analysis documentation
+        - Academic papers or preprints
+        - Code comments and docstrings
+
+  - type: textarea
+    id: specific_data
+    attributes:
+      label: Specific Results or Data
+      description: Are you asking about specific experimental results or data?
+      placeholder: |
+        If relevant, mention specific...
+        - Experiment names or configurations
+        - Statistical results or metrics
+        - Tables or figures from documentation
+        - Specific claims you want to understand
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Research Timeline
+      description: What's your timeline for needing this information?
+      options:
+        - No rush (academic curiosity)
+        - Within a month (research planning)
+        - Within a week (active research)
+        - ASAP (paper deadline/urgent project)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: collaboration
+    attributes:
+      label: Collaboration Interest
+      description: Are you interested in research collaboration?
+      options:
+        - label: I'm interested in potential research collaboration
+        - label: I have complementary expertise to offer
+        - label: I'm working on related research problems
+        - label: I might be able to extend or validate these results
+
+  - type: textarea
+    id: contribution
+    attributes:
+      label: Potential Contribution
+      description: How might you contribute back to the research?
+      placeholder: |
+        If applicable, describe how you might contribute...
+        - Validation on different datasets
+        - Extension to new domains or tasks
+        - Alternative experimental setups
+        - Theoretical analysis or insights
+        - Code improvements or optimizations
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Related Work
+      description: Any related papers or work you're aware of
+      placeholder: |
+        Mention any related research...
+        - Papers comparing similar approaches
+        - Alternative methods you're considering
+        - Theoretical frameworks you're using
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other relevant details
+      placeholder: |
+        Any additional information that might be helpful...

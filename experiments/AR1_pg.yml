@@ -1,0 +1,89 @@
+base_config: performance_variant.yaml
+experiment_name: AR1_policy_gradient
+description: Train macro-policy using task rewards and policy gradient (PG phase)
+base_experiment: AR0_bc
+macro_policy:
+  chunk_summary_dim: 512
+  retrieval_dim: 64
+  vision_dim: 768
+  value_dim: 32
+  hidden_dim: 256
+  num_layers: 3
+  dropout: 0.1
+  hysteresis_tau: 0.5
+  max_span: 4
+composition:
+  attachment_points:
+  - attention.w_o
+  - mlp.w_down
+  trust_region_tau: 1.0
+  spectral_budget: 2.0
+  frobenius_budget: 5.0
+  cache_safe_only: true
+router:
+  chunk_size: 128
+  num_experts: 3
+  hysteresis_tau: 0.5
+  trust_region_tau: 1.0
+  max_sequence_length: 2048
+  enable_routing_stats: true
+  enable_latency_tracking: true
+training:
+  batch_size: 32
+  learning_rate: 1e-4
+  num_epochs: 1000
+  warmup_steps: 500
+  max_grad_norm: 1.0
+  weight_decay: 1e-5
+  eval_every: 100
+  save_every: 500
+  log_every: 50
+policy_gradient:
+  kl_target: 0.01
+  clip_ratio: 0.2
+  value_loss_coeff: 0.5
+  entropy_coeff: 0.01
+  gae_lambda: 0.95
+  discount_factor: 0.99
+  ppo_epochs: 4
+  trust_region_kl: 0.015
+task_environment:
+  type: synthetic
+  reward_functions:
+  - format_validity: 0.4
+  - tool_success: 0.3
+  - cache_efficiency: 0.2
+  - expert_consistency: 0.1
+num_episodes: 2000
+eval_batch_size: 16
+eval_seq_len: 1024
+eval_batches: 50
+eval_episodes: 100
+expected_improvements:
+  em_f1_gain_min: 1.5
+  latency_increase_max: 15
+  cache_safety_maintain: 0.95
+  flip_rate_reduce: 0.05
+acceptance_gates:
+  slice_b_ci_positive: true
+  p50_latency_limit: 1.15
+  monotonicity_preserved: true
+  em_f1_improvement: 1.5
+quality_gates:
+  convergence_patience: 100
+  min_reward_improvement: 0.01
+  max_training_time_hours: 8
+  kl_divergence_limit: 0.05
+  trust_region_violations_max: 0.1
+monitoring:
+  router_action_histograms: true
+  flip_rate_tracking: true
+  trust_region_stats: true
+  kv_hit_percentage: true
+  latency_profiling: true
+  expert_utilization: true
+checkpointing:
+  save_best_reward: true
+  save_best_latency: true
+  save_every_n_episodes: 200
+  keep_last_n: 5

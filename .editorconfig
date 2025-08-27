@@ -1,0 +1,135 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python files
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+# Python stub files
+[*.pyi]
+indent_size = 4
+max_line_length = 88
+
+# Jupyter notebooks
+[*.ipynb]
+indent_size = 4
+# Don't trim trailing whitespace in JSON files (can break notebooks)
+trim_trailing_whitespace = false
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+max_line_length = 120
+
+# JSON files
+[*.json]
+indent_size = 2
+# Don't trim trailing whitespace in JSON (can break strict parsers)
+trim_trailing_whitespace = false
+
+# TOML files
+[*.toml]
+indent_size = 2
+max_line_length = 88
+
+# Markdown files
+[*.md]
+indent_size = 2
+max_line_length = 88
+# Preserve trailing whitespace for markdown line breaks
+trim_trailing_whitespace = false
+
+# reStructuredText files
+[*.rst]
+indent_size = 3
+max_line_length = 88
+
+# Configuration files
+[{.pre-commit-config.yaml,tox.ini,setup.cfg,pyproject.toml}]
+indent_size = 2
+
+# Makefiles
+[{Makefile,*.mk}]
+indent_style = tab
+indent_size = 4
+
+# Shell scripts
+[*.{sh,bash}]
+indent_size = 2
+max_line_length = 120
+
+# Batch files (Windows)
+[*.{bat,cmd}]
+end_of_line = crlf
+indent_size = 2
+
+# Web files
+[*.{html,css,scss,js,ts}]
+indent_size = 2
+max_line_length = 120
+
+# XML files
+[*.xml]
+indent_size = 2
+max_line_length = 120
+
+# Docker files
+[{Dockerfile,*.dockerfile}]
+indent_size = 2
+max_line_length = 120
+
+# GitHub Actions workflows
+[.github/workflows/*.{yml,yaml}]
+indent_size = 2
+max_line_length = 120
+
+# Documentation files
+[docs/**/*.{md,rst}]
+indent_size = 2
+max_line_length = 88
+trim_trailing_whitespace = false
+
+# Configuration for specific file types in experiments/
+[experiments/*.{yml,yaml}]
+indent_size = 2
+max_line_length = 200  # Allow longer lines for complex configurations
+
+# Log files (no formatting changes)
+[*.log]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Data files (no changes)
+[*.{csv,tsv,json,jsonl}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Binary files (no changes)
+[*.{png,jpg,jpeg,gif,ico,pdf,zip,tar,gz,tgz,bz2,xz,7z}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Model files (no changes)
+[*.{pt,pth,safetensors,onnx,pb}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Archive directory (minimal changes)
+[archive/**]
+insert_final_newline = true
+trim_trailing_whitespace = true
+# Don't change indentation in archived files
+indent_style = unset
+indent_size = unset

@@ -1,0 +1,270 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: f55_hardnegatives
+  description: F5.5 - Counterfactual hard-negatives for policy-over-memory sharpening
+  version: 1.3.0
+  created: '2024-08-23'
+  fast5_variant: F5.5
+model:
+  base_model: llama2-7b
+  architecture: bem_v11_stable
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    num_experts: 2
+    alpha: 16.0
+    dropout: 0.1
+    hard_negative_enhancement:
+      enabled: true
+      add_contradiction_features: true
+      add_consistency_features: true
+      feature_dim_expansion: 64
+    routing:
+      chunk_size: 128
+      hysteresis_tau: 0.7
+      routing_type: chunk_sticky
+      enhanced_features: true
+    attention_bias:
+      enabled: true
+      retrieval_dim: 768
+      bias_hidden_dim: 64
+    governance:
+      max_singular_value: 1.0
+      fro_budget: 1.0
+      trust_region: true
+      contradiction_penalty: 0.1
+hard_negative_mining:
+  enabled: true
+  mining_config:
+    min_lexical_overlap: 0.7
+    max_lexical_overlap: 0.95
+    min_length_ratio: 0.5
+    max_edit_distance: 10
+    contradiction_threshold: 0.8
+    hard_neg_sampling_ratio: 0.3
+    max_hard_negs_per_positive: 3
+    diversity_threshold: 0.3
+    contamination_check: true
+    use_embedding_similarity: true
+    embedding_threshold: 0.85
+    cache_embeddings: true
+  data_sources:
+    positive_samples: data/train_positives.jsonl
+    candidate_pool: data/hard_neg_candidates.jsonl
+    output_file: data/mined_hard_negatives.jsonl
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 1e-4
+  batch_size: 16
+  max_steps: 5000
+  warmup_steps: 500
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  hard_negative_training:
+    contradiction_loss_weight: 0.1
+    consistency_loss_weight: 0.05
+    magnitude_reduction_factor: 0.5
+    easy_positives_ratio: 0.4
+    hard_negative_ratio: 0.3
+    standard_negatives_ratio: 0.3
+    index_swap_training: true
+    retrieval_off_examples: true
+  save_steps: 1000
+  eval_steps: 500
+data:
+  train_file: data/train.jsonl
+  eval_file: data/eval.jsonl
+  hard_negatives_file: data/mined_hard_negatives.jsonl
+  max_seq_length: 2048
+  retrieval:
+    index_file: indices/retrieval.faiss
+    num_retrieved: 10
+    retrieval_model: sentence-transformers/all-mpnet-base-v2
+    clean_index: indices/clean.faiss
+    shuffled_index: indices/shuffled.faiss
+    corrupt_index: indices/corrupt.faiss
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  robustness_metrics:
+  - index_swap_slope
+  - retrieval_off_penalty
+  - contradiction_detection_accuracy
+  - consistency_score_calibration
+  - hard_negative_separation
+  - policy_memory_ratio
+  index_swap_evaluation:
+    enabled: true
+    indices:
+    - clean
+    - shuffled
+    - corrupt
+    measure_monotonicity: true
+    compute_slope: true
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - cache_hit_rate_pct
+  cache_monitoring:
+    enabled: true
+    track_kv_hits: true
+    track_routing_flips: true
+    track_gate_entropy: true
+    export_routing_decisions: true
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+quality_gates:
+  baseline_threshold:
+    enabled: true
+    metrics:
+    - EM
+    - F1
+    - BLEU
+    - chrF
+    min_improvement_pct: 0.0
+  index_swap_improvement:
+    enabled: true
+    min_slope_improvement: 0.1
+    measure_on: slice_b
+  retrieval_off_penalty:
+    enabled: true
+    min_penalty_increase: 0.05
+  latency_budget:
+    enabled: true
+    max_increase_pct: 10.0
+    metric: p50_latency_ms
+  cache_performance:
+    enabled: true
+    min_hit_rate_pct: 80.0
+  vram_budget:
+    enabled: true
+    max_delta_pct: 10.0
+  contradiction_detection:
+    enabled: true
+    min_accuracy: 0.8
+  hard_negative_separation:
+    enabled: true
+    min_separation_margin: 0.2
+budget_validation:
+  enabled: true
+  param_budget_pct: 8.0
+  flop_budget_pct: 8.0
+  reference_config: experiments/v11_baseline.yml
+  robustness_efficiency_tradeoff: true
+logging:
+  log_level: INFO
+  wandb_project: bem_v13_fast5
+  wandb_tags:
+  - bem_v13
+  - f55
+  - hard_negatives
+  - fast5
+  - robustness
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - cache_metrics
+  - routing_metrics
+  - robustness_metrics
+  - hard_negative_metrics
+  export_formats:
+  - jsonl
+  - csv
+  export_routing_data: true
+  export_hard_negative_data: true
+  export_contradiction_analysis: true
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  - q_proj
+  - k_proj
+  - v_proj
+  validate_rank_schedule: true
+  validate_attachment_points: true
+  validate_param_budget: true
+  max_param_increase_pct: 8.0
+  validate_hard_negative_quality: true
+  monitor_contamination_rate: true
+  check_label_consistency: true
+analysis:
+  stats_config:
+    n_bootstrap: 10000
+    alpha: 0.05
+    fdr_method: fdr_bh
+  cache_analysis:
+    enabled: true
+    export_detailed_metrics: true
+  robustness_analysis:
+    enabled: true
+    analyze_policy_memory_tradeoff: true
+    measure_distractor_resistance: true
+    evaluate_index_swap_behavior: true
+    profile_hard_negative_learning: true
+  hard_negative_analysis:
+    enabled: true
+    mining_effectiveness: true
+    contamination_analysis: true
+    diversity_analysis: true
+  pareto_analysis:
+    enabled: true
+    primary_metric: F1
+    robustness_metric: index_swap_slope
+    latency_metric: p50_latency_ms
+quality_control:
+  validate_mining_results: true
+  min_hard_negatives_found: 100
+  max_contamination_rate: 0.1
+  monitor_hard_negative_learning: true
+  validate_separation_margins: true
+  cross_validate_robustness: true
+  test_on_held_out_distractors: true
+reproducibility:
+  code_version: bem_v1.3.0
+  config_hash: null
+  python_version: null
+  torch_version: null
+  cuda_version: null
+  data_hash: null
+  index_hash: null
+  hard_negatives_hash: null
+  mining_config_hash: null
+  contradiction_model_hash: null

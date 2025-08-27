@@ -1,0 +1,178 @@
+version: '3.8'
+
+# Test environment Docker Compose configuration
+# Used for integration tests and local development testing
+
+services:
+  # PostgreSQL for integration tests
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: bem-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bem_test
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./tests/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bem_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bem-test-network
+
+  # Redis for caching and session tests
+  redis-test:
+    image: redis:7-alpine
+    container_name: bem-redis-test
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - bem-test-network
+
+  # Test application container
+  bem-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      args:
+        PYTHON_VERSION: "3.11"
+    container_name: bem-app-test
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql://postgres:postgres@postgres-test:5432/bem_test
+      REDIS_URL: redis://redis-test:6379/0
+      
+      # Test configuration
+      TESTING: "true"
+      LOG_LEVEL: "DEBUG"
+      FORCE_CPU_TESTS: "1"
+      CUDA_VISIBLE_DEVICES: ""
+      
+      # Disable external services during tests
+      DISABLE_WANDB: "true"
+      DISABLE_MLFLOW: "true"
+      DISABLE_SENTRY: "true"
+      
+      # Security settings for tests
+      SECRET_KEY: "test-secret-key-not-for-production"
+      DISABLE_AUTH: "true"
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./pytest.ini:/app/pytest.ini:ro
+      - test_artifacts:/app/test_artifacts
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - bem-test-network
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 5 &&
+        echo 'Running integration tests...' &&
+        pytest tests/ -v -m integration --tb=short
+      "
+
+  # Selenium for end-to-end web tests
+  selenium:
+    image: selenium/standalone-chrome:latest
+    container_name: bem-selenium-test
+    ports:
+      - "4444:4444"
+      - "7900:7900"  # VNC server for debugging
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - VNC_NO_PASSWORD=1
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - bem-test-network
+
+  # Elasticsearch for search functionality tests (if needed)
+  elasticsearch-test:
+    image: elasticsearch:8.11.0
+    container_name: bem-elasticsearch-test
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_test_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bem-test-network
+    profiles:
+      - search-tests  # Only start when explicitly requested
+
+volumes:
+  postgres_test_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  redis_test_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  elasticsearch_test_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  test_artifacts:
+    driver: local
+
+networks:
+  bem-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Health check and monitoring
+x-healthcheck: &default-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 30s

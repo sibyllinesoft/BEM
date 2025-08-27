@@ -1,0 +1,65 @@
+% Auto-generated results table template
+% Template variables: results_data, statistical_tests, confidence_intervals
+
+\begin{table}[ht]
+\centering
+\caption{{{ table_caption | default("Main Results: BEM vs Baseline Comparison") }}}
+\label{tab:main_results}
+\begin{tabular}{l{% for metric in metrics %}c{% endfor %}c}
+\toprule
+Method & {% for metric in metrics %}{{ metric.display_name }} & {% endfor %}Δ vs LoRA \\
+\midrule
+
+{% for method_result in results_data %}
+{% set method_name = method_result.method %}
+{% set is_bem = method_name.startswith('bem') %}
+
+{{ method_result.display_name | default(method_name) }} & 
+{% for metric in metrics %}
+  {% set metric_result = method_result.metrics[metric.name] %}
+  {% if metric_result.confidence_interval %}
+    {{ "%.2f" | format(metric_result.mean) }}{% if show_confidence_intervals %} 
+    \small{({{ "%.2f" | format(metric_result.confidence_interval[0]) }}, 
+           {{ "%.2f" | format(metric_result.confidence_interval[1]) }})}{% endif %} & 
+  {% else %}
+    {{ "%.2f" | format(metric_result.mean) }} & 
+  {% endif %}
+{% endfor %}
+
+{% if is_bem %}
+  {% set delta_result = method_result.delta_vs_lora %}
+  {% if delta_result.significant %}
+    \textbf{+{{ "%.2f" | format(delta_result.mean) }}}{% if show_confidence_intervals %}
+    \small{({{ "%.2f" | format(delta_result.confidence_interval[0]) }}, 
+           {{ "%.2f" | format(delta_result.confidence_interval[1]) }})}{% endif %} \\
+  {% else %}
+    +{{ "%.2f" | format(delta_result.mean) }}{% if show_confidence_intervals %}
+    \small{({{ "%.2f" | format(delta_result.confidence_interval[0]) }}, 
+           {{ "%.2f" | format(delta_result.confidence_interval[1]) }})}{% endif %} \\
+  {% endif %}
+{% else %}
+  -- \\
+{% endif %}
+
+{% endfor %}
+
+\bottomrule
+\end{tabular}
+
+{% if show_statistical_notes %}
+\begin{tablenotes}
+\small
+\item All results averaged over {{ num_seeds }} seeds with {{ bootstrap_samples }}k bootstrap resamples.
+\item Confidence intervals: {{ confidence_level }}% BCa (bias-corrected and accelerated).
+\item Statistical tests: {{ statistical_test_description }}
+{% if multiple_comparison_correction %}
+\item Multiple comparison correction: {{ correction_method }} (family-wise error rate: {{ fwer }}).
+{% endif %}
+\item Bold indicates statistically significant improvement over static LoRA baseline.
+{% if claim_validation %}
+\item All claims validated against pre-registered tests in claims.yaml.
+{% endif %}
+\end{tablenotes}
+{% endif %}
+
+\end{table}

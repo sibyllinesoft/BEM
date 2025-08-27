@@ -1,0 +1,287 @@
+{
+  "metric": "exact_match",
+  "full_dataset_results": {
+    "bem_p3_vs_static_lora_full": {
+      "effect_size": 0.022500000000000075,
+      "cohens_d": 0.5343821321778651,
+      "confidence_interval": [
+        -0.024921121226835558,
+        0.06882393776462212
+      ],
+      "p_value": 0.351,
+      "treatment_mean": 0.4649947312732364,
+      "treatment_std": 0.04210470119631753,
+      "baseline_mean": 0.4424947312732363,
+      "baseline_std": 0.042104701196317554,
+      "treatment_n": 5,
+      "baseline_n": 5,
+      "statistically_significant": "False",
+      "practically_significant": "True",
+      "both_significant": "False",
+      "corrected_p_value": 0.702,
+      "corrected_significant": "False"
+    },
+    "bem_p4_vs_static_lora_full": {
+      "effect_size": 0.022500000000000075,
+      "cohens_d": 0.5343821321778651,
+      "confidence_interval": [
+        -0.02431246765389204,
+        0.06930940128923951
+      ],
+      "p_value": 0.3474,
+      "treatment_mean": 0.4649947312732364,
+      "treatment_std": 0.04210470119631753,
+      "baseline_mean": 0.4424947312732363,
+      "baseline_std": 0.042104701196317554,
+      "treatment_n": 5,
+      "baseline_n": 5,
+      "statistically_significant": "False",
+      "practically_significant": "True",
+      "both_significant": "False",
+      "corrected_p_value": 0.702,
+      "corrected_significant": "False"
+    },
+    "bem_p3_vs_mole_full": {
+      "effect_size": 0.009000000000000008,
+      "cohens_d": 0.21375285287114557,
+      "confidence_interval": [
+        -0.03793205587534104,
+        0.05593205587534111
+      ],
+      "p_value": 0.699,
+      "treatment_mean": 0.4649947312732364,
+      "treatment_std": 0.04210470119631753,
+      "baseline_mean": 0.45599473127323636,
+      "baseline_std": 0.04210470119631753,
+      "treatment_n": 5,
+      "baseline_n": 5,
+      "statistically_significant": "False",
+      "practically_significant": "True",
+      "both_significant": "False",
+      "corrected_p_value": 0.88225,
+      "corrected_significant": "False"
+    },
+    "bem_p4_vs_mole_full": {
+      "effect_size": 0.009000000000000008,
+      "cohens_d": 0.21375285287114557,
+      "confidence_interval": [
+        -0.03793205587534104,
+        0.05593205587534111
+      ],
+      "p_value": 0.7058,
+      "treatment_mean": 0.4649947312732364,
+      "treatment_std": 0.04210470119631753,
+      "baseline_mean": 0.45599473127323636,
+      "baseline_std": 0.04210470119631753,
+      "treatment_n": 5,
+      "baseline_n": 5,
+      "statistically_significant": "False",
+      "practically_significant": "True",
+      "both_significant": "False",
+      "corrected_p_value": 0.88225,
+      "corrected_significant": "False"
+    }
+  },
+  "subset_analyses": {
+    "high_cache_efficiency": {
+      "subset_key": "high_cache_efficiency",
+      "criterion_name": "High Cache Efficiency",
+      "description": "Scenarios with cache hit rate \u2265 0.86",
+      "theoretical_basis": "BEM's cache-safe design should provide advantages in high cache hit scenarios",
+      "applies_to": "all_methods",
+      "subset_size": 4,
+      "subset_breakdown": {
+        "BEM P4 Composition": 2,
+        "BEM P3 Retrieval-Aware": 2
+      },
+      "comparisons": {},
+      "metric": "exact_match"
+    },
+    "low_latency_scenarios": {
+      "subset_key": "low_latency_scenarios",
+      "criterion_name": "Low Latency Scenarios",
+      "description": "Scenarios with p95 latency \u2264 122ms",
+      "theoretical_basis": "BEM's efficiency optimizations should excel in low-latency scenarios",
+      "applies_to": "all_methods",
+      "subset_size": 12,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 3,
+        "BEM P4 Composition": 3,
+        "Static LoRA": 3,
+        "MoLE": 3
+      },
+      "comparisons": {
+        "bem_p3_vs_static_lora_in_subset": {
+          "effect_size": 0.022500000000000075,
+          "cohens_d": 1.077527722819999,
+          "confidence_interval": [
+            -0.004545354637034427,
+            0.04954535463703447
+          ],
+          "p_value": 0.1328,
+          "treatment_mean": 0.4544685306455631,
+          "treatment_std": 0.020881133286404268,
+          "baseline_mean": 0.431968530645563,
+          "baseline_std": 0.020881133286404268,
+          "treatment_n": 3,
+          "baseline_n": 3,
+          "statistically_significant": "False",
+          "practically_significant": "True",
+          "both_significant": "False",
+          "corrected_p_value": 0.702,
+          "corrected_significant": "False"
+        },
+        "bem_p3_vs_mole_in_subset": {
+          "effect_size": 0.009000000000000064,
+          "cohens_d": 0.43101108912800123,
+          "confidence_interval": [
+            -0.01804535463703444,
+            0.03604535463703451
+          ],
+          "p_value": 0.6024,
+          "treatment_mean": 0.4544685306455631,
+          "treatment_std": 0.020881133286404268,
+          "baseline_mean": 0.445468530645563,
+          "baseline_std": 0.020881133286404268,
+          "treatment_n": 3,
+          "baseline_n": 3,
+          "statistically_significant": "False",
+          "practically_significant": "True",
+          "both_significant": "False",
+          "corrected_p_value": 0.88225,
+          "corrected_significant": "False"
+        }
+      },
+      "metric": "exact_match"
+    },
+    "high_retrieval_quality": {
+      "subset_key": "high_retrieval_quality",
+      "criterion_name": "High Retrieval Quality",
+      "description": "BEM scenarios with coverage score \u2265 0.72",
+      "theoretical_basis": "BEM's retrieval-aware architecture should excel when retrieval quality is high",
+      "applies_to": "bem_only",
+      "subset_size": 3,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 3
+      },
+      "comparisons": {
+        "bem_p3_retrieval-aware_subset_vs_full": {
+          "effect_size": -0.020964180332125104,
+          "cohens_d": -0.5650729210140113,
+          "confidence_interval": [
+            -0.06119226186033926,
+            0.016473898548771848
+          ],
+          "p_value": 0.3084,
+          "treatment_mean": 0.44403055094111127,
+          "treatment_std": 0.02415798856044746,
+          "baseline_mean": 0.4649947312732364,
+          "baseline_std": 0.04210470119631753,
+          "treatment_n": 3,
+          "baseline_n": 5,
+          "statistically_significant": "False",
+          "practically_significant": "True",
+          "both_significant": "False",
+          "corrected_p_value": 0.702,
+          "corrected_significant": "False"
+        }
+      },
+      "metric": "exact_match"
+    },
+    "confident_routing": {
+      "subset_key": "confident_routing",
+      "criterion_name": "Confident Routing",
+      "description": "BEM scenarios with high controller confidence \u2265 0.79",
+      "theoretical_basis": "BEM should perform best when routing decisions are confident and decisive",
+      "applies_to": "bem_only",
+      "subset_size": 3,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 3
+      },
+      "comparisons": {
+        "bem_p3_retrieval-aware_subset_vs_full": {
+          "effect_size": 0.02326264392780031,
+          "cohens_d": 0.5664043042668694,
+          "confidence_interval": [
+            -0.025099183503584033,
+            0.07191572428915133
+          ],
+          "p_value": 0.3478,
+          "treatment_mean": 0.4882573752010367,
+          "treatment_std": 0.03892050015305976,
+          "baseline_mean": 0.4649947312732364,
+          "baseline_std": 0.04210470119631753,
+          "treatment_n": 3,
+          "baseline_n": 5,
+          "statistically_significant": "False",
+          "practically_significant": "True",
+          "both_significant": "False",
+          "corrected_p_value": 0.702,
+          "corrected_significant": "False"
+        }
+      },
+      "metric": "exact_match"
+    },
+    "diverse_expert_usage": {
+      "subset_key": "diverse_expert_usage",
+      "criterion_name": "Diverse Expert Usage",
+      "description": "BEM scenarios with gate entropy \u2265 2.05",
+      "theoretical_basis": "BEM's dynamic routing should excel when expert diversity is valuable",
+      "applies_to": "bem_only",
+      "subset_size": 6,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 3,
+        "BEM P4 Composition": 3
+      },
+      "comparisons": {
+        "bem_p3_retrieval-aware_subset_vs_full": {
+          "effect_size": -0.0006980130951687036,
+          "cohens_d": -0.014393610648989426,
+          "confidence_interval": [
+            -0.059497820231004916,
+            0.0627804909560859
+          ],
+          "p_value": 0.9574,
+          "treatment_mean": 0.46429671817806767,
+          "treatment_std": 0.0592417183838159,
+          "baseline_mean": 0.4649947312732364,
+          "baseline_std": 0.04210470119631753,
+          "treatment_n": 3,
+          "baseline_n": 5,
+          "statistically_significant": "False",
+          "practically_significant": "False",
+          "both_significant": "False",
+          "corrected_p_value": 0.9616,
+          "corrected_significant": "False"
+        },
+        "bem_p4_composition_subset_vs_full": {
+          "effect_size": -0.0006980130951687036,
+          "cohens_d": -0.014393610648989426,
+          "confidence_interval": [
+            -0.05840225921302211,
+            0.0627804909560859
+          ],
+          "p_value": 0.9616,
+          "treatment_mean": 0.46429671817806767,
+          "treatment_std": 0.0592417183838159,
+          "baseline_mean": 0.4649947312732364,
+          "baseline_std": 0.04210470119631753,
+          "treatment_n": 3,
+          "baseline_n": 5,
+          "statistically_significant": "False",
+          "practically_significant": "False",
+          "both_significant": "False",
+          "corrected_p_value": 0.9616,
+          "corrected_significant": "False"
+        }
+      },
+      "metric": "exact_match"
+    }
+  },
+  "summary": {
+    "total_subsets": 5,
+    "subsets_with_data": 5,
+    "total_comparisons": 10,
+    "multiple_comparisons_correction": "Benjamini-Hochberg FDR"
+  }
+}

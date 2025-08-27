@@ -1,0 +1,5 @@
+{"input": "Summarize the following text:\n\nMachine learning is a subset of artificial intelligence that focuses on algorithms that can learn from data.", "output": "Machine learning is AI that uses algorithms to learn from data.", "source": "synthetic", "task_type": "summarization"}
+{"input": "Answer the following question:\n\nWhat is the capital of France?", "output": "Paris is the capital of France.", "source": "synthetic", "task_type": "question_answering"}
+{"input": "Write a creative story about:\n\nA robot learning emotions", "output": "Once there was a robot named Alex who discovered feelings through interacting with humans, slowly learning to understand joy, sadness, and love.", "source": "synthetic", "task_type": "creative_writing"}
+{"input": "Explain the concept:\n\nPhotosynthesis", "output": "Photosynthesis is the process by which plants convert sunlight, carbon dioxide, and water into glucose and oxygen.", "source": "synthetic", "task_type": "explanation"}
+{"input": "Translate to Spanish:\n\nHello, how are you?", "output": "Hola, ¿cómo estás?", "source": "synthetic", "task_type": "translation"}

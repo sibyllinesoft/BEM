@@ -1,0 +1,170 @@
+# PT1 + Dynamic Rank Mask - V1 Experiment Configuration
+# Expected: +≥1% EM/F1, Slice-B CI>0, latency unchanged
+
+name: "v1_pt1_dynamic_rank_mask"
+version: "1.0"
+description: "PT1 Head-Group Gating + Dynamic Rank Mask with instance-wise capacity allocation"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "performance_variant"
+variant_id: "V1"
+
+# Model architecture
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder - replace with actual base
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# PT1 Head-Group Gating Configuration
+head_gating:
+  enabled: true
+  num_groups: 4
+  heads_per_group: 3  # 12 heads / 4 groups
+  rank_per_group: 2
+  gate_temperature: 1.0
+  gate_dropout: 0.1
+  decorrelation_strength: 0.1
+  use_attention_stats: true
+  attention_stat_dim: 16
+  use_retrieval_quality: true
+  retrieval_quality_dim: 8
+  max_singular_value: 1.0
+  fro_budget: 0.8
+
+# Dynamic Rank Mask Configuration  
+dynamic_rank_mask:
+  enabled: true
+  total_rank: 16
+  active_rank: 8  # ~50% sparsity as specified
+  mask_temperature: 0.1
+  use_hadamard_path: true
+  hadamard_dim: 16
+  use_instance_adaptive: true
+  adaptation_dim: 32
+  mask_learning_rate: 1e-3
+  mask_momentum: 0.9
+  straight_through: true
+  max_singular_value: 1.0
+  fro_budget: 0.8
+  target_sparsity: 0.5
+
+# Training configuration
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+  
+  # Regularization
+  decorrelation_loss_weight: 0.1
+  orthogonal_reg_weight: 0.01
+  spectral_reg_weight: 0.05
+
+# Data configuration
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl" 
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+
+# Budget constraints (±5% tolerance)
+budget_constraints:
+  parameter_tolerance: 0.05  # ±5%
+  flop_tolerance: 0.05      # ±5% 
+  memory_tolerance: 0.10    # ±10% for activations
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # Performance gates
+  performance_gates:
+    slice_b_ci_threshold: 0.0  # CI > 0 required
+    latency_p50_threshold: 1.15  # ≤ +15% latency
+    kv_hit_rate_threshold: 0.95  # Maintain KV hit rate
+    vram_tolerance: 0.05  # ±5% VRAM
+  
+  # Metrics to track
+  metrics:
+    - "exact_match"
+    - "f1_score" 
+    - "bleu"
+    - "chrf"
+    - "latency_p50"
+    - "latency_p95"
+    - "kv_hit_rate"
+    - "parameter_count"
+    - "flop_count"
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "gate_entropy"
+    - "mask_sparsity"
+    - "decorrelation_penalty"
+    - "spectral_norms"
+    - "rank_usage"
+    - "attention_statistics"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_performance"
+    tags: ["v1", "pt1", "dynamic_rank", "performance"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  
+# Output configuration
+output:
+  output_dir: "logs/V1"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "f1_score"
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 16
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/V1/training.log"
+  log_spectral_metrics: true
+  log_attention_patterns: true
+  log_mask_statistics: true
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.001

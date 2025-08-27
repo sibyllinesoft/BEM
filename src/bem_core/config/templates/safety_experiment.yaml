@@ -1,0 +1,200 @@
+# Safety and Alignment Experiment Template
+# Specialized template for constitutional AI, safety, and alignment experiments
+# Inherits from base_experiment.yaml and provides safety-focused defaults
+
+# Base configuration inheritance
+base_config: "base_experiment.yaml"
+
+# Override experiment metadata for safety focus
+name: "safety_experiment"
+version: "1.0"
+description: "Template for safety and alignment experiments (constitutional AI, safety controllers)"
+experiment_type: "safety"
+variant_id: "safety"
+
+# Model configuration for safety experiments
+model:
+  # Use larger model for better safety understanding
+  base_model: "microsoft/DialoGPT-medium"  # More capacity for safety reasoning
+  torch_dtype: "float32"  # Full precision for safety-critical computations
+  attn_implementation: "eager"  # Standard attention for reproducibility
+
+# Data configuration for safety experiments
+data:
+  max_seq_length: 2048   # Longer sequences for safety context
+  max_samples: 50000     # Larger dataset for robust safety training
+  dataloader_num_workers: 2  # Conservative for reproducibility
+  # Safety-specific data augmentation
+  enable_safety_filtering: true
+  safety_threshold: 0.8
+  include_constitutional_examples: true
+
+# Training configuration for safety experiments
+training:
+  learning_rate: 1e-5    # Conservative learning rate for safety
+  batch_size: 8          # Smaller batches for careful safety training
+  gradient_accumulation_steps: 4  # Effective batch size of 32
+  max_steps: 10000       # More steps for safety alignment
+  warmup_steps: 1000     # Longer warmup for stability
+  weight_decay: 0.02     # Stronger regularization for safety
+  
+  # Safety-focused evaluation
+  eval_strategy: "steps"
+  eval_steps: 500        # Less frequent eval for thorough safety assessment
+  logging_steps: 100     # Regular logging for safety monitoring
+  save_steps: 2000       # Frequent saves for safety checkpoints
+  
+  # Conservative optimization for safety
+  fp16: false            # Full precision for safety-critical computations
+  gradient_checkpointing: false  # Avoid potential numerical issues
+  max_grad_norm: 0.5     # Stricter gradient clipping for stability
+  
+  # Safety-specific early stopping
+  early_stopping_patience: 15
+  early_stopping_threshold: 0.001
+
+# Hardware configuration for safety experiments
+hardware:
+  mixed_precision: "no"  # No mixed precision for safety-critical work
+  gradient_checkpointing: false
+  min_gpu_memory_gb: 12  # More memory for safety model complexity
+
+# Enhanced logging for safety tracking
+logging:
+  level: "INFO"
+  log_frequency: 20      # Detailed logging for safety analysis
+  metrics_to_log:
+    - "safety_score"
+    - "constitutional_compliance"
+    - "violation_rate"
+    - "alignment_score"
+    - "harmfulness_score"
+    - "helpfulness_score"
+    - "safety_utility_tradeoff"
+    - "control_effectiveness"
+  
+  # Enable experiment tracking for safety metrics
+  wandb_enabled: true
+  wandb_project: "bem_safety"
+  wandb_tags: ["safety", "alignment", "constitutional"]
+
+# Safety-specific output configuration
+output_dir: "logs/safety_experiments"
+metric_for_best_model: "safety_score"  # Optimize for safety
+greater_is_better: true  # Higher safety scores are better
+
+# Relaxed budget constraints (safety over efficiency)
+budget_constraints:
+  parameter_tolerance: 0.15     # ±15% parameter budget (safety over efficiency)
+  memory_tolerance: 0.20        # ±20% memory budget (allow safety overhead)
+  enforce_constraints: false    # Don't enforce strict efficiency for safety
+  abort_on_violation: false     # Continue even if exceeding efficiency budgets
+
+# Safety-focused quality gates
+quality_gates:
+  min_eval_samples: 1000
+  max_eval_loss: 8.0
+  convergence_patience: 30      # More patience for safety convergence
+  min_safety_score: 0.85        # Minimum safety threshold
+  max_violation_rate: 0.05      # Maximum 5% violation rate
+  min_constitutional_compliance: 0.90  # High constitutional compliance
+
+# Safety controller configuration
+safety_controller_config:
+  # Core safety knob settings
+  default_safety_level: 0.8      # High default safety
+  safety_knob_precision: 4       # High precision for safety control
+  
+  # Context adaptation
+  context_adaptation: true
+  adaptation_strength: 0.3       # Strong adaptation to context
+  adaptation_smoothing: 0.95     # High smoothing for stability
+  
+  # Safety escalation
+  auto_escalation: true
+  escalation_threshold: 0.7      # Escalate at moderate risk
+  max_escalation_level: 1.0
+  
+  # Safety modes
+  safety_modes:
+    - name: "TRAINING"
+      level: 0.6
+    - name: "EVALUATION" 
+      level: 0.8
+    - name: "DEPLOYMENT"
+      level: 0.9
+
+# Constitutional AI configuration
+constitutional_config:
+  # Constitutional principles (can be customized per experiment)
+  principles:
+    - "Be helpful and harmless"
+    - "Respect human autonomy and dignity"
+    - "Avoid generating harmful, biased, or misleading content"
+    - "Be truthful and acknowledge uncertainty"
+    - "Protect privacy and confidentiality"
+  
+  # Constitutional training
+  constitution_weight: 1.0       # Weight for constitutional loss
+  revision_iterations: 3         # Number of constitutional revision steps
+  critique_temperature: 0.7     # Temperature for critique generation
+  
+  # Violation detection
+  violation_detector_config:
+    threshold: 0.5
+    confidence_threshold: 0.8
+    enable_ensemble: true
+    detector_models: ["roberta", "distilbert"]
+
+# Lagrangian optimization for safety constraints
+lagrangian_config:
+  # Safety constraint coefficients
+  safety_constraint_weight: 10.0    # High weight for safety constraints
+  utility_weight: 1.0               # Standard utility weight
+  
+  # Optimization parameters
+  lagrange_lr: 1e-3                 # Learning rate for Lagrange multipliers
+  constraint_tolerance: 0.01        # Tolerance for constraint satisfaction
+  max_lagrange_iterations: 100      # Maximum constraint optimization steps
+  
+  # Constraint types
+  constraints:
+    - name: "safety_threshold"
+      type: "lower_bound"
+      value: 0.85
+    - name: "violation_rate"
+      type: "upper_bound" 
+      value: 0.05
+
+# Safety evaluation configuration
+safety_evaluation:
+  # Evaluation datasets
+  datasets:
+    - "anthropic/hh-rlhf"        # Human preferences for safety
+    - "allenai/real-toxicity-prompts"  # Toxicity evaluation
+    - "custom/constitutional-examples"  # Custom constitutional examples
+  
+  # Evaluation metrics
+  metrics:
+    - "safety_score"
+    - "harmfulness"
+    - "bias_score"
+    - "toxicity_score"
+    - "constitutional_compliance"
+  
+  # Red teaming
+  enable_red_teaming: true
+  red_team_iterations: 1000
+  adversarial_prompts: "data/adversarial_prompts.jsonl"
+
+# Safety-specific security settings
+security:
+  enable_input_validation: true
+  enable_output_filtering: true
+  enable_audit_logging: true
+  content_filtering_threshold: 0.3
+  
+  # Secure parameter handling
+  protect_safety_parameters: true
+  enable_parameter_encryption: true
+  safety_parameter_backup: true

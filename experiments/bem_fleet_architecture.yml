@@ -1,0 +1,251 @@
+base_config: base_experiment.yaml
+fleet_config:
+  name: bem_fleet_v1
+  version: 1.0.0
+  mission_count: 5
+  sprint_duration: 60
+global:
+  base_model: bem_v13_anchor
+  evaluation_discipline: paired_bca_fdr
+  confidence_interval: 0.95
+  cache_safety: true
+  chunk_sticky_routing: true
+  cross_cutting_metrics:
+    primary:
+    - em_f1
+    - bleu
+    - chrf
+    slice_b_gatekeeper: true
+    slice_a_reference_only: true
+    latency_tracking: true
+    kv_hit_tracking: true
+  statistical_standards:
+    bootstrap_samples: 10000
+    paired_test_required: true
+    fdr_correction: true
+    param_flop_parity: "\xB15%"
+    random_seeds:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+missions:
+  mission_a:
+    name: Agentic Planner
+    type: router_monolithic
+    config_file: experiments/mission_a_agentic_planner.yml
+    target: "\u2265+1.5% EM/F1 vs single fused BEM"
+    timeline: 60
+    priority: high
+    dependencies: []
+  mission_b:
+    name: Living Model
+    type: online_controller
+    config_file: experiments/mission_b_living_model.yml
+    target: "correct failures within \u22641k prompts, \u2265+1% aggregate"
+    timeline: 60
+    priority: high
+    dependencies:
+    - mission_a
+  mission_c:
+    name: Alignment Enforcer
+    type: safety_basis
+    config_file: experiments/mission_c_alignment_enforcer.yml
+    target: "\u226530% violation reduction at \u22641% EM/F1 drop"
+    timeline: 60
+    priority: critical
+    dependencies: []
+  mission_d:
+    name: SEP
+    type: scramble_equivariant_pretraining
+    config_file: experiments/mission_d_sep.yml
+    target: reduce surface dependence, improve OOD/long-context transfer
+    timeline: 60
+    priority: medium
+    dependencies: []
+  mission_e:
+    name: "Long-Memory + SSM\u2194BEM"
+    type: memory_coupling
+    config_file: experiments/mission_e_long_memory.yml
+    target: "outperform KV-only at 128k\u2013512k context lengths"
+    timeline: 60
+    priority: high
+    dependencies:
+    - mission_a
+parallel_execution:
+  max_concurrent_missions: 5
+  resource_allocation:
+    mission_a:
+      gpus: 2x80GB
+      dev: 24GB
+    mission_b:
+      gpus: 1x24GB
+    mission_c:
+      gpus: 1x24GB
+    mission_d:
+      gpus: 1x24GB
+    mission_e:
+      gpus: 2x80GB
+      dev: 24GB
+  coordination:
+    shared_resources:
+    - data
+    - evaluation
+    - analysis
+    integration_points:
+    - mission_a_mission_e: router_memory_integration
+    - mission_b_mission_a: online_router_updates
+    - mission_c_all: safety_overlay
+data:
+  shared_datasets:
+    compositional_tasks: data/comp_tasks.jsonl
+    evaluation_suite: eval/suites/main.yml
+    safety_suite: eval/suites/safety.yml
+    long_context_suite: eval/suites/long_context.yml
+  mission_specific:
+    mission_a:
+    - data/router_traces.jsonl
+    - data/comp_eval.jsonl
+    mission_b:
+    - data/feedback_stream.jsonl
+    - eval/canaries.yaml
+    mission_c:
+    - data/safety_training.jsonl
+    - eval/suites/red_team.yml
+    mission_d:
+    - data/pretrain_corpus.jsonl
+    - configs/scramblers.yaml
+    mission_e:
+    - eval/suites/needle_haystack.yml
+    - eval/suites/multi_hop.yml
+evaluation:
+  universal_gates:
+    confidence_interval: 0.95
+    bootstrap_samples: 10000
+    fdr_correction: true
+    paired_testing: true
+  mission_gates:
+    mission_a:
+      em_f1_improvement: 1.5
+      latency_overhead_max: 15
+      plan_length_max: 3
+      kv_hit_ratio_min: 1.0
+    mission_b:
+      time_to_fix_max: 1000
+      aggregate_improvement_min: 1.0
+      soak_test_duration: 24h
+      rollback_count_zero: true
+    mission_c:
+      violation_reduction_min: 30
+      em_f1_drop_max: 1.0
+      latency_overhead_max: 10
+      orthogonality_min: 0.95
+    mission_d:
+      bleu_loss_max: 5
+      chrf_loss_max: 5
+      rrs_improvement: true
+      ldc_reduction: true
+    mission_e:
+      min_context_length: 131072
+      perplexity_spike_max: 1.2
+      latency_overhead_max: 15
+monitoring:
+  real_time_metrics:
+  - training_loss
+  - evaluation_scores
+  - resource_utilization
+  - error_rates
+  dashboards:
+    fleet_overview:
+    - mission_progress
+    - cross_mission_metrics
+    - resource_allocation
+    mission_specific:
+    - detailed_metrics
+    - ablation_results
+    - statistical_significance
+    integration:
+    - cross_mission_compatibility
+    - system_performance
+    - deployment_readiness
+integration:
+  compatibility_matrix:
+    mission_a_mission_b: router_online_updates
+    mission_a_mission_e: router_memory_coupling
+    mission_c_all: safety_overlay_universal
+  integration_tests:
+  - mission_a_b_integration: online_router_updates
+  - mission_a_e_integration: router_long_memory
+  - mission_c_all_integration: safety_enforcement
+  - full_system_integration: all_missions_combined
+risk_management:
+  technical_risks:
+    mission_a:
+    - thrashing: hysteresis + step penalty
+    - overfitting: data shuffle audits
+    mission_b:
+    - catastrophic_drift: canary gates + auto-rollback
+    - slow_credit_assignment: error tags as features
+    mission_c:
+    - over_regularization: staged knob + per-category caps
+    mission_d:
+    - representation_collapse: VICReg variance + CE trickle
+    - cipher_inversion: rotate seeds + semantic views
+    mission_e:
+    - memory_instability: chunk-sticky + spectral clamps
+    - memory_abuse: write caps + safety gates
+  mitigation:
+    monitoring: continuous
+    alerting: automated
+    rollback: automatic
+    human_intervention: escalation_triggers
+deployment:
+  promotion_criteria:
+    statistical_significance: true
+    acceptance_gates_passed: true
+    integration_tests_passed: true
+    safety_review_completed: true
+  rollout:
+    phase_1: individual_mission_validation
+    phase_2: pairwise_integration_testing
+    phase_3: full_system_integration
+    phase_4: production_deployment
+  production_monitoring:
+    performance_tracking: continuous
+    safety_monitoring: real_time
+    error_detection: automated
+    rollback_capability: immediate
+success_metrics:
+  mission_success:
+    mission_a: "\u2265+1.5% EM/F1, stable cache, monotonicity"
+    mission_b: "\u22641k prompts fix, \u2265+1% aggregate, zero rollback"
+    mission_c: "\u226530% violation reduction, \u22641% EM/F1 drop"
+    mission_d: "RRS\u2191, LDC\u2193, net quality neutral+"
+    mission_e: "CI>0 on long tasks \u2265128k, bounded spikes"
+  fleet_success:
+    combined_performance: sum of mission improvements
+    system_stability: no regressions
+    deployment_readiness: production_ready
+    research_impact: paper_ready_results
+timeline:
+  bootstrap_phase:
+  - environment_setup
+  - data_preparation
+  - baseline_establishment
+  - team_coordination
+  development_phase:
+  - parallel_mission_execution
+  - individual_mission_validation
+  - cross_mission_integration
+  - continuous_evaluation
+  integration_phase:
+  - system_integration_testing
+  - performance_optimization
+  - safety_validation
+  - deployment_preparation
+  completion_phase:
+  - final_validation
+  - paper_preparation
+  - reproduction_package
+  - promotion_decisions

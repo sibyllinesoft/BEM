@@ -1,0 +1,138 @@
+# Performance Optimization Experiment Template
+# Specialized template for router and perftrack performance optimization experiments
+# Inherits from base_experiment.yaml and provides performance-focused defaults
+
+# Base configuration inheritance
+base_config: "base_experiment.yaml"
+
+# Override experiment metadata for performance focus
+name: "performance_variant"
+version: "1.0"
+description: "Template for performance optimization experiments (router, perftrack)"
+experiment_type: "performance"
+variant_id: "perf"
+
+# Model configuration optimized for performance testing
+model:
+  # Use smaller model for faster iteration during performance testing
+  base_model: "microsoft/DialoGPT-small"
+  torch_dtype: "float16"  # Half precision for better performance
+  attn_implementation: "flash_attention_2"  # Use Flash Attention if available
+
+# Data configuration for performance experiments
+data:
+  max_seq_length: 1024  # Longer sequences to test routing performance
+  max_samples: 10000    # Reasonable sample size for performance evaluation
+  dataloader_num_workers: 4  # Parallel data loading for performance
+  batch_size: 32        # Larger batch size for throughput testing
+
+# Training configuration optimized for performance experiments
+training:
+  learning_rate: 3e-4   # Higher learning rate for faster convergence
+  batch_size: 32        # Override with larger batch size
+  gradient_accumulation_steps: 2  # Effective batch size of 64
+  max_steps: 5000       # More steps for performance pattern emergence
+  warmup_steps: 500     # Proportional warmup
+  
+  # Performance-focused evaluation
+  eval_strategy: "steps"
+  eval_steps: 250       # More frequent evaluation to track performance
+  logging_steps: 25     # More frequent logging for performance monitoring
+  save_steps: 1000      # Less frequent saves to reduce I/O overhead
+  
+  # Optimization for performance
+  fp16: true            # Enable mixed precision for speed
+  gradient_checkpointing: true  # Memory-performance tradeoff
+  
+# Hardware configuration for performance experiments
+hardware:
+  mixed_precision: "fp16"
+  gradient_checkpointing: true
+  min_gpu_memory_gb: 8  # Minimum GPU memory for performance experiments
+
+# Enhanced logging for performance tracking
+logging:
+  level: "INFO"
+  log_frequency: 5      # More frequent metric logging
+  metrics_to_log:
+    - "routing_efficiency"
+    - "expert_utilization"
+    - "cache_hit_ratio"
+    - "inference_latency"
+    - "memory_usage"
+    - "flops_per_token"
+    - "throughput_tokens_per_sec"
+  
+  # Enable experiment tracking for performance metrics
+  wandb_enabled: true
+  wandb_project: "bem_performance"
+  wandb_tags: ["performance", "optimization", "routing"]
+
+# Performance-specific output configuration
+output_dir: "logs/performance_experiments"
+metric_for_best_model: "routing_efficiency"  # Focus on routing performance
+greater_is_better: true  # Higher routing efficiency is better
+
+# Stricter budget constraints for performance experiments
+budget_constraints:
+  parameter_tolerance: 0.05     # ±5% parameter budget (strict)
+  memory_tolerance: 0.05        # ±5% memory budget (strict)
+  flops_tolerance: 0.10         # ±10% FLOPS budget
+  enforce_constraints: true     # Always enforce for performance experiments
+  abort_on_violation: true      # Abort if performance degrades
+
+# Performance-focused quality gates
+quality_gates:
+  min_eval_samples: 500
+  max_eval_loss: 5.0
+  convergence_patience: 20
+  min_routing_efficiency: 0.75  # Minimum routing efficiency threshold
+  max_inference_latency_ms: 50  # Maximum acceptable latency
+  min_cache_hit_ratio: 0.60     # Minimum cache performance
+
+# Performance-specific router configuration
+router_config:
+  chunk_size: 128
+  num_experts: 8                # More experts for performance testing
+  hysteresis_tau: 0.3           # Lower hysteresis for responsiveness
+  trust_region_tau: 0.8
+  max_sequence_length: 2048
+  enable_routing_stats: true
+  enable_latency_tracking: true
+  enable_cache_analysis: true
+
+# Perftrack-specific configuration
+perftrack_config:
+  # PT1 Head Gating
+  num_groups: 4
+  heads_per_group: 2
+  gate_temperature: 0.8         # Lower temperature for sharper gating
+  decorrelation_strength: 0.15
+  
+  # PT2 Dynamic Masking
+  mask_sparsity: 0.5
+  mask_temperature: 1.2
+  
+  # PT3 Kronecker
+  kronecker_rank: 16
+  kronecker_dropout: 0.1
+  
+  # PT4 Residual FiLM
+  film_bottleneck_dim: 64
+  film_activation: "gelu"
+
+# Performance monitoring and profiling
+profiling:
+  enable_memory_profiling: true
+  enable_compute_profiling: true
+  profile_every_n_steps: 100
+  export_chrome_trace: true
+  export_tensorboard: true
+
+# Benchmark configuration
+benchmarks:
+  run_throughput_benchmark: true
+  run_latency_benchmark: true
+  run_memory_benchmark: true
+  benchmark_batch_sizes: [1, 4, 8, 16, 32]
+  benchmark_sequence_lengths: [128, 256, 512, 1024]

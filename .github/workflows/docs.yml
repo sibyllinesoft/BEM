@@ -1,0 +1,513 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**/*.py'
+      - 'README.md'
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'src/**/*.py'
+      - 'README.md'
+      - 'pyproject.toml'
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Force deploy to GitHub Pages'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 1
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+
+jobs:
+  # Check documentation changes
+  docs-changes:
+    name: Check Documentation Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_changed: ${{ steps.changes.outputs.docs }}
+      api_changed: ${{ steps.changes.outputs.api }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - 'README.md'
+              - '.github/workflows/docs.yml'
+            api:
+              - 'src/**/*.py'
+              - 'pyproject.toml'
+
+  # Build documentation
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    needs: docs-changes
+    if: needs.docs-changes.outputs.docs == 'true' || needs.docs-changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .[docs,dev]
+
+      - name: Verify MkDocs configuration
+        run: |
+          if [[ ! -f mkdocs.yml ]]; then
+            echo "Creating basic MkDocs configuration..."
+            cat > mkdocs.yml << EOF
+          site_name: BEM Documentation
+          site_description: Block-wise Expert Modules - Adaptive Neural Architecture for Generalist AI
+          site_url: https://nathanrice.github.io/BEM/
+          repo_name: nathanrice/BEM
+          repo_url: https://github.com/nathanrice/BEM
+          
+          theme:
+            name: material
+            features:
+              - navigation.tabs
+              - navigation.sections
+              - navigation.expand
+              - navigation.top
+              - search.highlight
+              - search.share
+              - toc.integrate
+              - content.code.annotate
+              - content.code.copy
+            palette:
+              - scheme: default
+                primary: blue
+                accent: light blue
+                toggle:
+                  icon: material/weather-night
+                  name: Switch to dark mode
+              - scheme: slate
+                primary: blue
+                accent: light blue
+                toggle:
+                  icon: material/weather-sunny
+                  name: Switch to light mode
+          
+          plugins:
+            - search
+            - mkdocstrings:
+                handlers:
+                  python:
+                    options:
+                      docstring_style: google
+                      show_source: false
+                      show_root_heading: true
+                      show_root_toc_entry: false
+            - gen-files:
+                scripts:
+                  - docs/gen_ref_pages.py
+            - literate-nav:
+                nav_file: SUMMARY.md
+            - section-index
+          
+          markdown_extensions:
+            - toc:
+                permalink: true
+            - markdown.extensions.codehilite:
+                guess_lang: false
+            - admonition
+            - codehilite
+            - extra
+            - pymdownx.superfences:
+                custom_fences:
+                  - name: mermaid
+                    class: mermaid
+                    format: !!python/name:pymdownx.superfences.fence_code_format
+            - pymdownx.tabbed:
+                alternate_style: true
+            - pymdownx.details
+            - pymdownx.inlinehilite
+            - pymdownx.snippets
+            - pymdownx.arithmatex:
+                generic: true
+          
+          extra_javascript:
+            - https://polyfill.io/v3/polyfill.min.js?features=es6
+            - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+          
+          nav:
+            - Home: index.md
+            - Quick Start: docs/QUICK_START.md
+            - User Guide: docs/guides/USER_GUIDE.md
+            - Developer Guide: docs/guides/DEVELOPER_GUIDE.md
+            - API Reference: reference/
+            - Research: docs/RESEARCH_GUIDE.md
+            - Architecture: docs/TECHNICAL_ARCHITECTURE.md
+            - Deployment: docs/DEPLOYMENT.md
+            - Contributing: CONTRIBUTING.md
+            - Changelog: CHANGELOG.md
+          EOF
+          fi
+
+      - name: Create documentation generator script
+        run: |
+          mkdir -p docs
+          cat > docs/gen_ref_pages.py << 'EOF'
+          """Generate the code reference pages."""
+          
+          from pathlib import Path
+          import mkdocs_gen_files
+          
+          nav = mkdocs_gen_files.Nav()
+          
+          src_path = Path("src")
+          for path in sorted(src_path.rglob("*.py")):
+              module_path = path.relative_to(src_path).with_suffix("")
+              doc_path = path.relative_to(src_path).with_suffix(".md")
+              full_doc_path = Path("reference", doc_path)
+              
+              parts = tuple(module_path.parts)
+              
+              if parts[-1] == "__init__":
+                  parts = parts[:-1]
+                  doc_path = doc_path.with_name("index.md")
+                  full_doc_path = full_doc_path.with_name("index.md")
+              elif parts[-1] == "__main__":
+                  continue
+              
+              nav[parts] = doc_path.as_posix()
+              
+              with mkdocs_gen_files.open(full_doc_path, "w") as fd:
+                  identifier = ".".join(parts)
+                  print(f"::: {identifier}", file=fd)
+              
+              mkdocs_gen_files.set_edit_path(full_doc_path, path)
+          
+          with mkdocs_gen_files.open("reference/SUMMARY.md", "w") as nav_file:
+              nav_file.writelines(nav.build_literate_nav())
+          EOF
+
+      - name: Create documentation index
+        run: |
+          if [[ ! -f docs/index.md ]]; then
+            cat > docs/index.md << EOF
+          # BEM Documentation
+          
+          Welcome to the Block-wise Expert Modules (BEM) documentation.
+          
+          ## Overview
+          
+          BEM is an adaptive neural architecture system for generalist AI applications. It implements block-wise expert modules that can dynamically route computation based on input characteristics.
+          
+          ## Quick Links
+          
+          - [Quick Start Guide](QUICK_START.md)
+          - [API Reference](reference/)
+          - [Research Guide](RESEARCH_GUIDE.md)
+          - [Developer Guide](guides/DEVELOPER_GUIDE.md)
+          
+          ## Features
+          
+          - ✨ Adaptive routing mechanisms
+          - 🚀 High-performance computation
+          - 🔧 Flexible configuration
+          - 📊 Comprehensive evaluation tools
+          - 🛡️ Built-in safety mechanisms
+          
+          ## Installation
+          
+          \`\`\`bash
+          pip install bem
+          \`\`\`
+          
+          ## Quick Example
+          
+          \`\`\`python
+          from bem_core import BEMModel
+          
+          # Initialize model
+          model = BEMModel(config_path="config.yaml")
+          
+          # Train or evaluate
+          model.train(data_loader)
+          results = model.evaluate(test_data)
+          \`\`\`
+          
+          ## Repository Structure
+          
+          $(cat README.md | sed -n '/## Repository Structure/,/## /p' | head -n -1 | tail -n +2 || echo "See README.md for repository structure")
+          EOF
+          fi
+
+      - name: Build documentation
+        run: |
+          mkdocs build --strict --verbose
+
+      - name: Check documentation links
+        run: |
+          # Install link checker
+          npm install -g markdown-link-check
+          
+          # Check main documentation files
+          find docs -name "*.md" -exec markdown-link-check {} \; || echo "Link check completed with warnings"
+
+      - name: Generate API documentation coverage report
+        run: |
+          python << EOF
+          import ast
+          import os
+          from pathlib import Path
+          
+          def has_docstring(node):
+              return (isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)) and
+                      ast.get_docstring(node) is not None)
+          
+          total_functions = 0
+          documented_functions = 0
+          
+          for py_file in Path("src").rglob("*.py"):
+              if py_file.name.startswith("_") and py_file.name != "__init__.py":
+                  continue
+              
+              try:
+                  with open(py_file, 'r', encoding='utf-8') as f:
+                      tree = ast.parse(f.read())
+                  
+                  for node in ast.walk(tree):
+                      if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
+                          if not node.name.startswith("_"):
+                              total_functions += 1
+                              if has_docstring(node):
+                                  documented_functions += 1
+              except:
+                  continue
+          
+          if total_functions > 0:
+              coverage = (documented_functions / total_functions) * 100
+              print(f"Documentation coverage: {coverage:.1f}% ({documented_functions}/{total_functions})")
+              
+              with open("docs_coverage.txt", "w") as f:
+                  f.write(f"{coverage:.1f}")
+          else:
+              print("No functions found to check documentation coverage")
+              with open("docs_coverage.txt", "w") as f:
+                  f.write("0.0")
+          EOF
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: |
+            site/
+            docs_coverage.txt
+          retention-days: 7
+
+  # Test documentation build on different Python versions
+  test-docs:
+    name: Test Docs (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: docs-changes
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.11', '3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .[docs]
+
+      - name: Test documentation build
+        run: |
+          if [[ -f mkdocs.yml ]]; then
+            mkdocs build --strict
+          else
+            echo "No mkdocs.yml found, skipping docs build test"
+          fi
+
+  # Deploy to GitHub Pages
+  deploy:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: [docs-changes, build]
+    if: |
+      (github.ref == 'refs/heads/main' && needs.build.result == 'success') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true')
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+          path: docs_artifact
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs_artifact/site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
+      - name: Update deployment status
+        run: |
+          echo "📚 Documentation deployed to: ${{ steps.deployment.outputs.page_url }}"
+          
+          # Get documentation coverage
+          if [[ -f docs_artifact/docs_coverage.txt ]]; then
+            COVERAGE=$(cat docs_artifact/docs_coverage.txt)
+            echo "📊 Documentation coverage: ${COVERAGE}%"
+          fi
+
+  # Validate external links
+  link-check:
+    name: Check External Links
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install link checker
+        run: npm install -g markdown-link-check
+
+      - name: Check README links
+        run: markdown-link-check README.md --config .github/mlc_config.json || true
+
+      - name: Check documentation links
+        run: |
+          find docs -name "*.md" -exec markdown-link-check {} --config .github/mlc_config.json \; || true
+
+      - name: Create link check config
+        run: |
+          mkdir -p .github
+          cat > .github/mlc_config.json << EOF
+          {
+            "ignorePatterns": [
+              {
+                "pattern": "^http://localhost"
+              },
+              {
+                "pattern": "^https://localhost"
+              },
+              {
+                "pattern": "^file://"
+              }
+            ],
+            "timeout": "10s",
+            "retryOn429": true,
+            "retryCount": 3,
+            "fallbackOnError": true,
+            "aliveStatusCodes": [200, 206, 999]
+          }
+          EOF
+
+  # Documentation quality report
+  quality-report:
+    name: Documentation Quality Report
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always() && needs.build.result == 'success'
+    timeout-minutes: 10
+
+    steps:
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+          path: docs_artifact
+
+      - name: Generate quality report
+        run: |
+          echo "# 📚 Documentation Quality Report" > doc_report.md
+          echo "" >> doc_report.md
+          echo "**Build Status:** ✅ Success" >> doc_report.md
+          echo "**Deploy Status:** ${{ needs.deploy.result == 'success' && '✅ Deployed' || '❌ Failed' }}" >> doc_report.md
+          echo "" >> doc_report.md
+          
+          if [[ -f docs_artifact/docs_coverage.txt ]]; then
+            COVERAGE=$(cat docs_artifact/docs_coverage.txt)
+            echo "**API Documentation Coverage:** ${COVERAGE}%" >> doc_report.md
+            
+            if (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+              echo "✅ Good coverage" >> doc_report.md
+            else
+              echo "⚠️ Coverage below 80%" >> doc_report.md
+            fi
+          fi
+          
+          echo "" >> doc_report.md
+          echo "**Generated:** $(date)" >> doc_report.md
+          
+          cat doc_report.md
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation-quality-report
+          path: doc_report.md
+          retention-days: 30

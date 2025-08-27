@@ -1,0 +1,405 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Create pre-release'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: 1
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+
+jobs:
+  # Validate release conditions
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install release dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-semantic-release bump2version
+
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual release
+            CURRENT_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+            echo "Current version: $CURRENT_VERSION"
+            
+            # Bump version based on input
+            NEW_VERSION=$(bump2version --dry-run --list ${{ github.event.inputs.release_type }} | grep new_version | cut -d= -f2)
+            echo "New version: $NEW_VERSION"
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "is_prerelease=${{ github.event.inputs.prerelease }}" >> $GITHUB_OUTPUT
+          else
+            # Tag-based release
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "Version from tag: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+            # Check if it's a pre-release (contains alpha, beta, rc)
+            if [[ "$VERSION" =~ (alpha|beta|rc) ]]; then
+              echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Validate changelog
+        run: |
+          if [[ ! -f CHANGELOG.md ]]; then
+            echo "ERROR: CHANGELOG.md not found"
+            exit 1
+          fi
+          
+          # Check if changelog has entry for this version
+          if ! grep -q "${{ steps.version.outputs.version }}" CHANGELOG.md; then
+            echo "WARNING: No changelog entry found for version ${{ steps.version.outputs.version }}"
+          fi
+
+  # Run full test suite before release
+  test:
+    name: Pre-release Testing
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run comprehensive tests
+        run: |
+          pytest tests/ \
+            --verbose \
+            --cov=src \
+            --cov-report=xml \
+            --cov-fail-under=80 \
+            --timeout=300
+
+      - name: Security scan
+        run: |
+          bandit -r src/ -f json -o security-report.json
+          safety check --json --output safety-report.json || true
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: test-failure-artifacts
+          path: |
+            coverage.xml
+            security-report.json
+            safety-report.json
+          retention-days: 7
+
+  # Build release artifacts
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: [validate, test]
+    timeout-minutes: 20
+    outputs:
+      package_name: ${{ steps.build.outputs.package_name }}
+      package_version: ${{ steps.build.outputs.package_version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine bump2version
+
+      - name: Update version for manual release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          # Update version in files
+          bump2version ${{ github.event.inputs.release_type }} --verbose
+          
+          # Commit version bump
+          git add .
+          git commit -m "Bump version to ${{ needs.validate.outputs.version }}"
+
+      - name: Build package
+        id: build
+        run: |
+          python -m build
+          
+          # Get package info
+          PACKAGE_NAME=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['name'])")
+          PACKAGE_VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
+          
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check package
+        run: |
+          twine check dist/*
+          
+          # Verify package can be imported
+          pip install dist/*.whl
+          python -c "import bem_core; print(f'Successfully imported {bem_core.__version__}')"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-dist
+          path: dist/
+          retention-days: 30
+
+      - name: Create and push tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git tag -a "v${{ needs.validate.outputs.version }}" -m "Release v${{ needs.validate.outputs.version }}"
+          git push origin "v${{ needs.validate.outputs.version }}"
+
+  # Create GitHub release
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-dist
+          path: dist/
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Extract changelog section for this version
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          if [[ -f CHANGELOG.md ]]; then
+            # Try to extract changelog section
+            NOTES=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1 | tail -n +2)
+            if [[ -z "$NOTES" ]]; then
+              NOTES="Release $VERSION"
+            fi
+          else
+            NOTES="Release $VERSION"
+          fi
+          
+          # Save to file for multiline output
+          echo "$NOTES" > release_notes.md
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.validate.outputs.version }}
+          release_name: BEM v${{ needs.validate.outputs.version }}
+          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          draft: false
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+
+      - name: Upload wheel to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/${{ needs.build.outputs.package_name }}-${{ needs.build.outputs.package_version }}-py3-none-any.whl
+          asset_name: ${{ needs.build.outputs.package_name }}-${{ needs.build.outputs.package_version }}-py3-none-any.whl
+          asset_content_type: application/zip
+
+      - name: Upload source distribution to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/${{ needs.build.outputs.package_name }}-${{ needs.build.outputs.package_version }}.tar.gz
+          asset_name: ${{ needs.build.outputs.package_name }}-${{ needs.build.outputs.package_version }}.tar.gz
+          asset_content_type: application/gzip
+
+  # PyPI publication (optional)
+  pypi-publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [validate, build, github-release]
+    timeout-minutes: 10
+    # Only publish to PyPI if it's not a pre-release and we have PyPI credentials
+    if: needs.validate.outputs.is_prerelease != 'true' && vars.PUBLISH_TO_PYPI == 'true'
+    environment: pypi
+    permissions:
+      id-token: write  # For trusted publishing
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          verbose: true
+
+  # Post-release tasks
+  post-release:
+    name: Post-release Tasks
+    runs-on: ubuntu-latest
+    needs: [validate, build, github-release]
+    if: always() && needs.github-release.result == 'success'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Update development version
+        if: github.event_name == 'workflow_dispatch' && needs.validate.outputs.is_prerelease != 'true'
+        run: |
+          # Bump to next development version
+          pip install bump2version
+          bump2version patch --verbose --new-version $(python -c "
+          import toml
+          version = toml.load('pyproject.toml')['project']['version']
+          parts = version.split('.')
+          parts[-1] = str(int(parts[-1]) + 1)
+          print('.'.join(parts) + '.dev0')
+          ")
+          
+          git add .
+          git commit -m "Prepare for next development iteration"
+          git push origin main
+
+      - name: Create announcement
+        run: |
+          echo "🎉 BEM v${{ needs.validate.outputs.version }} has been released!" 
+          echo "📦 GitHub Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.validate.outputs.version }}"
+          if [[ "${{ vars.PUBLISH_TO_PYPI }}" == "true" && "${{ needs.validate.outputs.is_prerelease }}" != "true" ]]; then
+            echo "🐍 PyPI: https://pypi.org/project/${{ needs.build.outputs.package_name }}/${{ needs.build.outputs.package_version }}/"
+          fi
+
+      - name: Trigger documentation update
+        run: |
+          # Trigger docs workflow to update documentation site
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows/docs.yml/dispatches" \
+            -d '{"ref":"main"}'
+
+  # Cleanup on failure
+  cleanup:
+    name: Cleanup Failed Release
+    runs-on: ubuntu-latest
+    needs: [validate, test, build, github-release]
+    if: failure()
+    timeout-minutes: 5
+
+    steps:
+      - name: Cleanup artifacts
+        run: |
+          echo "Release process failed. Cleaning up..."
+          echo "Failed jobs:"
+          echo "- Validate: ${{ needs.validate.result }}"
+          echo "- Test: ${{ needs.test.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          echo "- GitHub Release: ${{ needs.github-release.result }}"
+
+      - name: Delete failed tag
+        if: github.event_name == 'workflow_dispatch' && needs.build.result == 'success'
+        run: |
+          # Delete the tag if it was created but release failed
+          git push --delete origin "v${{ needs.validate.outputs.version }}" || true

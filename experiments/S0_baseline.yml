@@ -1,0 +1,120 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: S0_baseline
+  description: v1.1 baseline parity anchor for v1.3-stack validation
+  version: 1.1.0
+  created: '2024-08-23'
+  campaign: v1.3-stack-validation
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_v11_stable
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    num_experts: 2
+    alpha: 16.0
+    dropout: 0.1
+    routing:
+      chunk_size: 128
+      hysteresis_tau: 0.7
+      routing_type: chunk_sticky
+    attention_bias:
+      enabled: true
+      retrieval_dim: 768
+      bias_hidden_dim: 64
+    governance:
+      max_singular_value: 1.0
+      fro_budget: 1.0
+      trust_region: true
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 1e-4
+  batch_size: 8
+  max_steps: 200
+  warmup_steps: 20
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 50
+  eval_steps: 50
+data:
+  train_file: data/train.jsonl
+  eval_file: data/val.jsonl
+  max_seq_length: 512
+  retrieval:
+    index_file: indices/retrieval.faiss
+    num_retrieved: 10
+    retrieval_model: sentence-transformers/all-mpnet-base-v2
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - vram_usage_gb
+  - cache_hit_rate_pct
+  cache_monitoring:
+    enabled: true
+    track_kv_hits: true
+    track_routing_flips: true
+quality_gates:
+  baseline_threshold:
+    enabled: true
+    metrics:
+    - EM
+    - F1
+    - BLEU
+    - chrF
+  latency_budget:
+    enabled: true
+    max_increase_pct: 15.0
+  cache_performance:
+    enabled: true
+    min_hit_rate_pct: 80.0
+  vram_budget:
+    enabled: true
+    max_delta_pct: 5.0
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  validate_param_budget: true
+  max_param_increase_pct: 5.0
+  target_params: 10070016
+  target_flops: 13740539904
+logging:
+  log_level: INFO
+  wandb_project: bem_v13_stack_validation
+  wandb_tags:
+  - S0
+  - baseline
+  - v13_campaign
+  export_formats:
+  - jsonl

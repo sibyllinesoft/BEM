@@ -1,0 +1,30 @@
+# These are supported funding model platforms
+
+# GitHub Sponsors (if available)
+# github: nathanrice
+
+# Research Institution Support
+# If this research is supported by grants or institutions,
+# consider adding appropriate funding information here
+
+# Academic Funding Information
+# This project may be supported by research grants or institutional funding.
+# For academic collaborations or funding inquiries, please contact:
+# - Email: nathan@example.com
+# - Research institution affiliations and grant information
+
+# Open Collective (if applicable)
+# open_collective: bem-research
+
+# Custom funding URLs
+custom: 
+  - "https://github.com/sponsors/nathanrice"
+  - "mailto:nathan@example.com?subject=BEM%20Research%20Funding%20Inquiry"
+
+# Note: This file enables the "Sponsor" button on the repository.
+# Update with actual funding platforms when available.
+# For research projects, consider including:
+# - Grant acknowledgments
+# - Institutional affiliations  
+# - Collaboration opportunities
+# - Research funding programs

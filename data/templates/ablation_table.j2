@@ -1,0 +1,78 @@
+% Auto-generated ablation study table template
+% Template variables: ablation_results, baseline_performance
+
+\begin{table}[ht]
+\centering
+\caption{{{ table_caption | default("Ablation Study: BEM Component Analysis") }}}
+\label{tab:ablation_study}
+\begin{tabular}{l{% for metric in metrics %}c{% endfor %}}
+\toprule
+Configuration & {% for metric in metrics %}{{ metric.display_name }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+\midrule
+
+{% for config in ablation_results %}
+{% set config_name = config.name %}
+{% set is_full_bem = config.is_complete %}
+
+{% if is_full_bem %}\textbf{ {% endif %}{{ config.display_name }}{% if is_full_bem %} }{% endif %} & 
+{% for metric in metrics %}
+  {% set metric_result = config.metrics[metric.name] %}
+  {% if is_full_bem and metric_result.significant_vs_baseline %}
+    \textbf{{{ "%.2f" | format(metric_result.mean) }}}
+  {% else %}
+    {{ "%.2f" | format(metric_result.mean) }}
+  {% endif %}
+  {% if show_deltas and not loop.first %}
+    {% set delta = metric_result.mean - baseline_performance[metric.name] %}
+    {% if delta > 0 %}
+      \small{(+{{ "%.2f" | format(delta) }})}
+    {% elif delta < 0 %}
+      \small{({{ "%.2f" | format(delta) }})}
+    {% endif %}
+  {% endif %}
+  {% if not loop.last %} & {% endif %}
+{% endfor %} \\
+
+{% endfor %}
+
+\midrule
+
+{% if show_component_analysis %}
+\multicolumn{ {{ metrics | length + 1 }} }{l}{\textit{Component Contributions:}} \\
+
+{% for component, contribution in component_contributions.items() %}
+{{ component | replace('_', ' ') | title }} & 
+{% for metric in metrics %}
+  {% set contrib = contribution[metric.name] %}
+  {% if contrib.significant %}
+    \textbf{+{{ "%.2f" | format(contrib.value) }}}
+  {% else %}
+    +{{ "%.2f" | format(contrib.value) }}
+  {% endif %}
+  {% if not loop.last %} & {% endif %}
+{% endfor %} \\
+{% endfor %}
+
+{% endif %}
+
+\bottomrule
+\end{tabular}
+
+{% if show_ablation_notes %}
+\begin{tablenotes}
+\small
+\item Full BEM configuration shown in bold.
+\item Component contributions computed via successive addition ablation.
+\item Statistical significance tested against static LoRA baseline.
+{% if hierarchical_ablation %}
+\item Hierarchical routing tested with chunk sizes N ∈ {16, 32, 64}.
+\item Retrieval-aware controller tested with/without coverage and consistency features.
+{% endif %}
+{% if governance_ablation %}
+\item Spectral governance tested with thresholds σ₁ ∈ {1.0, 2.0, 4.0}.
+\item Trust-region projection tested with radii τ ∈ {0.5, 1.0, 2.0}.
+{% endif %}
+\end{tablenotes}
+{% endif %}
+
+\end{table}

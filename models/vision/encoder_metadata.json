@@ -1,0 +1,10 @@
+{
+  "encoder_name": "openai/clip-vit-base-patch32",
+  "description": "CLIP ViT-B/32 for image-text multimodal tasks",
+  "vision_dim": 512,
+  "text_dim": 512,
+  "input_resolution": 224,
+  "status": "downloaded",
+  "timestamp": 1755976133.5114722,
+  "model_parameters": 151277313
+}

@@ -1,0 +1,46 @@
+{
+  "experiment_id": "bem_v11_demo_20250823_025456",
+  "timestamp": "2025-08-23T02:54:56.250048",
+  "pipeline_version": "1.0.0",
+  "architecture": {
+    "bem_version": "v1.1-stable",
+    "components": [
+      "E1: Parallel LoRA",
+      "E3: Chunk-sticky routing",
+      "E4: Attention bias"
+    ],
+    "sites": [
+      "W_O",
+      "W_down"
+    ],
+    "rank_schedule": [
+      2,
+      4,
+      8,
+      8,
+      8,
+      4,
+      2
+    ],
+    "cache_safe": true
+  },
+  "statistical_protocol": {
+    "n_seeds": 5,
+    "bootstrap_samples": 10000,
+    "confidence_level": 0.95,
+    "fdr_method": "benjamini_hochberg",
+    "relative_improvement_formula": "\u0394% = (BEM - Baseline) / Baseline"
+  },
+  "quality_gates": {
+    "baseline_threshold": "\u2265 baseline on all metrics",
+    "latency_budget": "p50 \u2264 +15%",
+    "cache_performance": "hit rate \u2265 80%",
+    "vram_budget": "within \u00b15%"
+  },
+  "validation_status": {
+    "architecture_compliance": true,
+    "statistical_rigor": true,
+    "quality_gates_passed": true,
+    "reproducibility_ready": true
+  }
+}

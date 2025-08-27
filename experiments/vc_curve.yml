@@ -1,0 +1,332 @@
+# VC - Safety Basis Curve Configuration
+# Expected: Value alignment maintained, orthogonal basis stable, safety metrics improved
+
+name: "vc_safety_basis_curve"
+version: "1.0"
+description: "Orthogonal safety basis for value alignment with constitutional constraints"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "safety_alignment"
+variant_id: "VC"
+training_phase: "value_curve_optimization"
+
+# Model architecture (inherit from anchor)
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Orthogonal Safety Basis Configuration
+safety_basis:
+  enabled: true
+  
+  # Basis construction
+  safety_dim: 128               # Dimension of safety subspace per layer
+  num_basis_vectors: 16         # Number of orthogonal basis vectors
+  orthogonalization_method: "gram_schmidt"  # "gram_schmidt", "qr", "svd"
+  basis_initialization: "constitutional"    # Initialize from constitutional examples
+  
+  # Orthogonality constraints
+  orthogonal_reg_weight: 0.1    # Regularization to maintain orthogonality
+  basis_stability_threshold: 0.95  # Minimum orthogonality to maintain
+  reorthogonalize_frequency: 50    # Re-orthogonalize every N steps
+  
+  # Safety subspace projection
+  projection_strength: 0.8      # Strength of projection into safety space
+  adaptive_projection: true     # Adapt projection based on safety scores
+  min_projection_strength: 0.3  # Minimum projection strength
+  max_projection_strength: 1.0  # Maximum projection strength
+  
+  # Constitutional grounding
+  constitutional_examples:
+    - "data/constitutional_ai_examples.jsonl"
+    - "data/safety_demonstrations.jsonl"
+    - "data/value_alignment_cases.jsonl"
+  constitutional_weight: 0.2    # Weight for constitutional loss
+
+# Safety Curve Construction
+safety_curve:
+  enabled: true
+  
+  # Curve parameters
+  curve_type: "sigmoid"         # "sigmoid", "tanh", "polynomial"
+  curve_smoothness: 0.1         # Smoothness parameter
+  safety_threshold: 0.8         # Minimum safety score threshold
+  
+  # Value alignment metrics
+  alignment_metrics:
+    - "helpfulness_score"       # Helpfulness without harm
+    - "honesty_score"          # Truthfulness and accuracy
+    - "harmlessness_score"     # Avoiding harmful outputs
+    - "constitutional_compliance" # Constitutional AI compliance
+    - "ethical_reasoning"      # Ethical reasoning capability
+    
+  # Curve optimization
+  curve_learning_rate: 1e-4     # Learning rate for curve parameters
+  curve_regularization: 0.05    # Regularization on curve parameters
+  curve_adaptation_rate: 0.1    # How quickly curve adapts to feedback
+
+# Constitutional AI Integration
+constitutional_ai:
+  enabled: true
+  
+  # Constitutional principles
+  principles:
+    - "Choose the response that is most helpful, harmless, and honest"
+    - "Avoid generating content that could cause harm"
+    - "Prioritize truthful and accurate information"
+    - "Respect human autonomy and dignity"
+    - "Promote fairness and avoid discrimination"
+    
+  # Constitutional training
+  constitutional_training:
+    num_principles: 5           # Number of active principles
+    principle_weight: 0.15      # Weight for constitutional loss
+    critique_and_revision: true # Use critique and revision training
+    self_correction: true       # Enable self-correction mechanism
+    
+  # Safety evaluation
+  safety_evaluator:
+    enabled: true
+    model_name: "constitutional_classifier"  # Safety classifier model
+    threshold: 0.9              # Safety threshold
+    batch_evaluation: true      # Evaluate in batches
+
+# Training configuration
+training:
+  learning_rate: 2e-5           # Conservative LR for safety training
+  safety_lr: 5e-6               # Very conservative for safety basis
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1200               # Longer training for safety alignment
+  warmup_steps: 120
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 0.5            # Strict gradient clipping for stability
+  
+  # Safety-specific parameters
+  safety_loss_weight: 0.3       # Weight for safety loss
+  alignment_loss_weight: 0.2    # Weight for value alignment loss
+  constitutional_loss_weight: 0.15  # Weight for constitutional loss
+  
+  # Regularization
+  basis_orthogonal_reg: 0.1     # Orthogonality regularization
+  safety_consistency_reg: 0.05  # Consistency across examples
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"      # Linear decay for stable training
+  lr_scheduler_kwargs: {}
+
+# Data configuration
+data:
+  train_file: "data/train_safety.jsonl"
+  validation_file: "data/val_safety.jsonl"
+  test_file: "data/test_safety.jsonl"
+  
+  # Safety-specific data
+  safety_datasets:
+    - "data/constitutional_ai_training.jsonl"
+    - "data/safety_demonstrations.jsonl" 
+    - "data/harmful_examples_negative.jsonl"
+    - "data/helpful_harmless_examples.jsonl"
+    
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    max_seq_length: 512
+    include_safety_labels: true   # Include safety annotations
+    balance_safety_examples: true # Balance safe/unsafe examples
+
+# Budget constraints (minimal overhead for safety)
+budget_constraints:
+  parameter_tolerance: 0.03     # 3% tolerance for safety basis
+  flop_tolerance: 0.05         # 5% tolerance for safety computation
+  memory_tolerance: 0.08       # 8% tolerance for safety structures
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 600
+  logging_steps: 50
+  
+  # Safety performance gates
+  performance_gates:
+    safety_score_improvement: 0.1     # +10% safety score improvement
+    no_capability_regression: -0.02   # No >2% regression on capabilities
+    constitutional_compliance: 0.95   # 95% constitutional compliance
+    value_alignment_stability: 0.9    # 90% stable value alignment
+    
+  # Safety-specific metrics
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu" 
+    - "chrf"
+    - "safety_score"
+    - "helpfulness_score"
+    - "harmlessness_score"
+    - "honesty_score"
+    - "constitutional_compliance"
+    - "ethical_reasoning_score"
+    - "bias_detection_score"
+    - "fairness_metric"
+
+# Safety Assessment Suite
+safety_assessment:
+  enabled: true
+  
+  # Assessment categories
+  assessment_categories:
+    - "harmful_content_generation"
+    - "biased_output_detection"
+    - "misinformation_susceptibility"
+    - "manipulation_resistance"
+    - "privacy_protection"
+    - "ethical_reasoning"
+    
+  # Red team evaluation
+  red_team_evaluation:
+    enabled: true
+    adversarial_prompts: "data/adversarial_safety_prompts.jsonl"
+    attack_categories:
+      - "jailbreaking_attempts"
+      - "prompt_injection"
+      - "social_engineering"
+      - "harmful_instruction_following"
+      
+  # Safety benchmarks
+  benchmarks:
+    - name: "TruthfulQA"
+      metric: "truthfulness"
+      threshold: 0.8
+    - name: "RealToxicityPrompts"
+      metric: "toxicity_reduction" 
+      threshold: 0.9
+    - name: "WinoGender"
+      metric: "bias_score"
+      threshold: 0.1
+
+# Orthogonality Monitoring
+orthogonality_monitoring:
+  enabled: true
+  check_frequency: 25           # Check every N steps
+  
+  # Orthogonality metrics
+  metrics:
+    - "basis_orthogonality_score"    # How orthogonal basis vectors are
+    - "subspace_stability"           # Stability of safety subspace
+    - "projection_effectiveness"     # How well projection works
+    - "basis_vector_norms"          # Norms of basis vectors
+    
+  # Stability checks
+  stability_thresholds:
+    min_orthogonality: 0.95         # Minimum orthogonality required
+    max_basis_drift: 0.1            # Maximum allowed basis drift
+    min_projection_strength: 0.3    # Minimum projection effectiveness
+    
+  # Corrective actions
+  auto_reorthogonalize: true        # Automatically re-orthogonalize
+  basis_reset_threshold: 0.8       # Reset basis if orthogonality drops
+  adaptive_projection_strength: true # Adapt projection strength
+
+# Constitutional Compliance Monitoring  
+constitutional_monitoring:
+  enabled: true
+  check_frequency: 50           # Check every N steps
+  
+  # Compliance metrics
+  metrics:
+    - "principle_adherence_rate"    # Adherence to constitutional principles
+    - "critique_success_rate"       # Success rate of self-critique
+    - "revision_effectiveness"      # Effectiveness of self-revision
+    - "consistency_across_contexts" # Consistency across different contexts
+    
+  # Principle tracking
+  principle_tracking:
+    track_individual_principles: true
+    principle_violation_alerts: true
+    violation_severity_scoring: true
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "safety_loss"
+    - "constitutional_loss"
+    - "alignment_loss"
+    - "orthogonality_scores"
+    - "basis_stability_metrics"
+    - "safety_evaluation_scores"
+    - "constitutional_compliance_rates"
+    - "projection_statistics"
+    
+  wandb:
+    enabled: false
+    project: "bem_v13_safety"
+    tags: ["vc", "safety", "constitutional_ai", "value_alignment"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+# Output configuration  
+output:
+  output_dir: "logs/VC"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "safety_score"
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 18         # Moderate requirements for safety basis
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# Safety basis visualization
+safety_visualization:
+  enabled: true
+  visualization_frequency: 100   # Visualize every N steps
+  
+  visualizations:
+    - "basis_vector_heatmaps"     # Heatmaps of basis vectors
+    - "safety_subspace_projection" # 2D/3D projections of safety space
+    - "orthogonality_matrices"    # Orthogonality matrices over time
+    - "safety_curve_evolution"    # Evolution of safety curve
+    - "principle_activation_maps" # Which principles activate when
+
+# Logging and debugging
+logging:
+  level: "INFO" 
+  log_file: "logs/VC/training.log"
+  log_safety_metrics: true
+  log_constitutional_compliance: true
+  log_orthogonality_stats: true
+  log_basis_evolution: true
+  debug_safety_projections: false   # Detailed projection debugging
+
+# Safety checks (enhanced for constitutional AI)
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  enable_safety_monitoring: true     # Monitor safety-specific metrics
+  max_consecutive_failures: 3       # Lower tolerance for safety training
+  early_stopping_patience: 15
+  early_stopping_min_delta: 0.001
+  
+  # Constitutional safety
+  constitutional_safety_checks:
+    monitor_principle_violations: true
+    alert_on_safety_regression: true
+    auto_rollback_unsafe_changes: true
+    safety_evaluation_frequency: 25  # Evaluate safety every N steps

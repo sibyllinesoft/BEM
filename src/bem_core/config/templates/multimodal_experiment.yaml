@@ -1,0 +1,263 @@
+# Multimodal Experiment Template
+# Specialized template for vision-language experiments and cross-modal learning
+# Inherits from base_experiment.yaml and provides multimodal-focused defaults
+
+# Base configuration inheritance
+base_config: "base_experiment.yaml"
+
+# Override experiment metadata for multimodal focus
+name: "multimodal_experiment"
+version: "1.0"
+description: "Template for vision-language and cross-modal learning experiments"
+experiment_type: "multimodal"
+variant_id: "multimodal"
+
+# Model configuration for multimodal experiments
+model:
+  # Base language model
+  base_model: "microsoft/DialoGPT-medium"  # Medium size for multimodal complexity
+  torch_dtype: "float32"  # Full precision for multimodal fusion stability
+  attn_implementation: "eager"  # Standard attention for multimodal compatibility
+  
+  # Vision model configuration
+  vision_model: "openai/clip-vit-base-patch32"  # CLIP vision encoder
+  vision_hidden_size: 512
+  vision_patch_size: 32
+  vision_num_patches: 196  # 14x14 patches for 224x224 images
+  
+  # Cross-modal fusion
+  fusion_hidden_size: 768
+  fusion_num_layers: 4
+  cross_attention_heads: 12
+  enable_vision_text_fusion: true
+
+# Data configuration for multimodal experiments
+data:
+  # Text data
+  max_seq_length: 1024   # Shorter text for multimodal context
+  max_samples: 25000     # Balanced dataset size
+  
+  # Vision data
+  image_size: 224        # Standard CLIP image size
+  image_channels: 3      # RGB images
+  max_images_per_sample: 4  # Multiple images per text
+  
+  # Multimodal data loading
+  dataloader_num_workers: 6  # More workers for image processing
+  image_preprocessing: "clip"  # Use CLIP preprocessing
+  enable_data_augmentation: true
+  augmentation_strength: 0.3
+
+# Training configuration for multimodal experiments
+training:
+  learning_rate: 2e-5    # Conservative LR for multimodal stability
+  batch_size: 16         # Moderate batch size for memory efficiency
+  gradient_accumulation_steps: 2  # Effective batch size of 32
+  max_steps: 8000        # Sufficient steps for multimodal convergence
+  warmup_steps: 800      # Proportional warmup
+  
+  # Multimodal-specific learning rates
+  vision_learning_rate: 1e-5     # Lower LR for vision encoder
+  fusion_learning_rate: 5e-5     # Higher LR for fusion layers
+  
+  # Training strategy
+  eval_strategy: "steps"
+  eval_steps: 400        # Regular evaluation for multimodal metrics
+  logging_steps: 50      # Frequent logging for multimodal debugging
+  save_steps: 1500       # Regular saves for long multimodal training
+  
+  # Optimization for multimodal
+  fp16: false            # Full precision for multimodal fusion stability
+  gradient_checkpointing: true  # Memory efficiency for large multimodal models
+  max_grad_norm: 1.0     # Standard gradient clipping
+  
+  # Multimodal-specific training phases
+  enable_staged_training: true
+  vision_warmup_steps: 1000     # Warm up vision encoder first
+  fusion_warmup_steps: 2000     # Then warm up fusion layers
+
+# Hardware configuration for multimodal experiments
+hardware:
+  mixed_precision: "no"  # Avoid mixed precision issues with multimodal
+  gradient_checkpointing: true
+  min_gpu_memory_gb: 16  # Higher memory requirement for multimodal
+
+# Enhanced logging for multimodal tracking
+logging:
+  level: "INFO"
+  log_frequency: 10      # Regular logging for multimodal metrics
+  metrics_to_log:
+    - "multimodal_alignment"
+    - "vision_text_similarity"
+    - "cross_modal_attention"
+    - "image_text_consistency"
+    - "modality_fusion_score"
+    - "vision_encoder_loss"
+    - "text_encoder_loss"
+    - "fusion_layer_loss"
+    - "coverage_score"
+    - "spatial_attention_entropy"
+  
+  # Enable experiment tracking for multimodal metrics
+  wandb_enabled: true
+  wandb_project: "bem_multimodal"
+  wandb_tags: ["multimodal", "vision-language", "cross-modal"]
+
+# Multimodal-specific output configuration
+output_dir: "logs/multimodal_experiments"
+metric_for_best_model: "multimodal_alignment"  # Focus on modality alignment
+greater_is_better: true  # Higher alignment is better
+
+# Flexible budget constraints for multimodal complexity
+budget_constraints:
+  parameter_tolerance: 0.25     # ±25% parameter budget (multimodal overhead)
+  memory_tolerance: 0.30        # ±30% memory budget (vision processing overhead)
+  enforce_constraints: false    # Don't enforce strict constraints for multimodal
+  abort_on_violation: false     # Continue despite overhead
+
+# Multimodal-focused quality gates
+quality_gates:
+  min_eval_samples: 500
+  max_eval_loss: 6.0
+  convergence_patience: 25      # More patience for multimodal convergence
+  min_multimodal_alignment: 0.70  # Minimum cross-modal alignment
+  min_vision_text_similarity: 0.60  # Minimum vision-text similarity
+  max_modality_gap: 0.30        # Maximum gap between modalities
+
+# Vision encoder configuration
+vision_encoder_config:
+  # CLIP configuration
+  model_name: "openai/clip-vit-base-patch32"
+  freeze_vision_backbone: false  # Allow fine-tuning
+  vision_dropout: 0.1
+  
+  # Feature extraction
+  extract_cls: true             # Extract CLS token embedding
+  extract_pooled: true          # Extract pooled features
+  extract_patches: true         # Extract patch-level features
+  extract_regions: true         # Extract region-level summaries
+  
+  # Region processing
+  num_regions: 16               # Number of spatial regions
+  region_pooling: "adaptive"    # Adaptive pooling for regions
+  
+  # Spatial attention
+  enable_spatial_attention: true
+  spatial_attention_heads: 8
+  spatial_attention_dropout: 0.1
+
+# Cross-modal fusion configuration
+fusion_config:
+  # Architecture
+  fusion_type: "cross_attention"  # Cross-attention fusion
+  num_fusion_layers: 4
+  fusion_hidden_size: 768
+  fusion_intermediate_size: 3072
+  
+  # Attention configuration
+  num_attention_heads: 12
+  attention_dropout: 0.1
+  hidden_dropout: 0.1
+  
+  # Fusion strategies
+  early_fusion: true            # Fuse at multiple layers
+  late_fusion: true             # Final fusion layer
+  residual_fusion: true         # Residual connections
+  
+  # Temperature scaling
+  attention_temperature: 1.0
+  fusion_temperature: 0.8
+
+# Multimodal training configuration
+multimodal_training:
+  # Loss configuration
+  vision_loss_weight: 0.3       # Weight for vision reconstruction loss
+  text_loss_weight: 0.4         # Weight for text generation loss
+  alignment_loss_weight: 0.3    # Weight for cross-modal alignment
+  
+  # Contrastive learning
+  enable_contrastive_loss: true
+  contrastive_temperature: 0.07
+  negative_sampling_ratio: 4
+  
+  # Consistency objectives
+  enable_consistency_loss: true
+  consistency_weight: 0.2
+  consistency_temperature: 0.5
+
+# Coverage analysis configuration
+coverage_analysis:
+  enable_coverage_tracking: true
+  
+  # Spatial coverage
+  spatial_grid_size: 7          # 7x7 spatial grid
+  min_coverage_threshold: 0.5   # Minimum coverage ratio
+  
+  # Semantic coverage
+  enable_semantic_coverage: true
+  semantic_categories: [
+    "objects", "people", "animals", "vehicles", 
+    "buildings", "nature", "text", "abstract"
+  ]
+  
+  # Quality metrics
+  coverage_consistency_threshold: 0.7
+  spatial_attention_entropy_min: 0.3
+
+# Preprocessing configuration
+preprocessing:
+  # Image preprocessing
+  image_transforms:
+    - "resize": [224, 224]
+    - "normalize": 
+        mean: [0.48145466, 0.4578275, 0.40821073]
+        std: [0.26862954, 0.26130258, 0.27577711]
+    - "random_horizontal_flip": 0.5  # Data augmentation
+    - "color_jitter": 
+        brightness: 0.2
+        contrast: 0.2
+        saturation: 0.2
+        hue: 0.1
+  
+  # Text preprocessing
+  text_transforms:
+    - "tokenization": "clip"
+    - "max_length": 77            # CLIP text encoder limit
+    - "padding": "max_length"
+    - "truncation": true
+
+# Evaluation configuration
+multimodal_evaluation:
+  # Evaluation datasets
+  datasets:
+    - "conceptual_captions"       # Image captioning
+    - "flickr30k"                # Image-text retrieval
+    - "coco_captions"            # Multi-reference captions
+    - "vqa_v2"                   # Visual question answering
+  
+  # Evaluation metrics
+  metrics:
+    - "image_text_retrieval_r@1"
+    - "image_text_retrieval_r@5"
+    - "caption_bleu_score"
+    - "caption_rouge_score"
+    - "visual_grounding_accuracy"
+    - "cross_modal_similarity"
+  
+  # Zero-shot evaluation
+  enable_zero_shot: true
+  zero_shot_datasets: ["imagenet", "cifar10"]
+
+# Controller integration for multimodal BEM
+controller_integration:
+  # Vision features to controller
+  pass_vision_to_controller: true
+  controller_vision_dim: 256
+  
+  # Cache safety
+  vision_cache_isolation: true    # Keep vision features separate from text cache
+  controller_only_vision: true    # Vision features only influence controller
+  
+  # Multimodal routing
+  enable_multimodal_routing: true
+  vision_routing_weight: 0.3      # Weight of vision in routing decisions

@@ -1,0 +1,233 @@
+# AR0 - Behavioral Cloning for Agentic Router - Baseline Configuration
+# Behavioral cloning phase before policy gradient training
+
+name: "ar0_agentic_router_bc"
+version: "1.0"
+description: "Behavioral cloning training for macro-policy initialization"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "agentic_router"
+variant_id: "AR0"
+training_phase: "behavioral_cloning"
+
+# Model architecture
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder - replace with actual base
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Macro Policy Configuration
+macro_policy:
+  enabled: true
+  num_experts: 3                # Code, Formal, Safety experts
+  chunk_summary_dim: 512        # Chunk content summary dimension
+  retrieval_dim: 64             # Retrieval quality features
+  vision_dim: 768               # Vision features (for multimodal)
+  value_dim: 32                 # Safety/constitution scores
+  hidden_dim: 256               # Policy hidden dimension
+  num_layers: 3                 # Policy network depth
+  dropout: 0.1                  # Policy dropout
+  hysteresis_tau: 0.5           # Action hysteresis threshold
+  max_span: 4                   # Maximum action span (≤3 for promotion)
+
+# Expert configuration
+experts:
+  code_expert:
+    id: 0
+    name: "Code"
+    specialization: "code_generation"
+    rank_budget_range: [8, 64]
+    bias_scale_range: [0.1, 2.0]
+    
+  formal_expert:
+    id: 1
+    name: "Formal"
+    specialization: "formal_reasoning"
+    rank_budget_range: [8, 64] 
+    bias_scale_range: [0.1, 2.0]
+    
+  safety_expert:
+    id: 2
+    name: "Safety"
+    specialization: "safety_constraints"
+    rank_budget_range: [4, 32]  # Lower rank for safety
+    bias_scale_range: [0.1, 1.5]
+
+# Behavioral Cloning Configuration
+behavioral_cloning:
+  enabled: true
+  
+  # Training data
+  expert_traces_file: "data/router_traces.jsonl"  # Generated expert traces
+  trace_generation:
+    num_episodes: 1000          # Episodes for trace generation
+    max_episode_length: 20      # Chunks per episode
+    expert_policy: "rule_based" # Rule-based expert for demonstration
+    
+  # BC-specific parameters
+  imitation_learning_rate: 1e-4  # Learning rate for BC
+  action_loss_weight: 1.0        # Weight for action prediction loss
+  value_loss_weight: 0.1         # Weight for value prediction loss (auxiliary)
+  entropy_reg_weight: 0.01       # Entropy regularization
+  
+  # Action space constraints
+  enforce_span_limit: true       # Enforce span ≤ 3
+  penalize_long_plans: true      # Penalize plan length > 3
+  plan_length_penalty: 0.1      # Penalty weight for long plans
+
+# Data configuration
+data:
+  # Trace synthesis for BC
+  synthesize_traces: true
+  expert_trace_config:
+    environments: ["Code", "Formal", "Safety"]
+    context_length: 512
+    chunk_size: 32
+    reward_function: "format_tool_success"  # 0.5*format + 0.5*tool_success
+    
+  # Base training data
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    chunk_sequences: true
+    chunk_size: 32
+
+# Training configuration
+training:
+  learning_rate: 5e-5           # Base model learning rate
+  macro_policy_lr: 1e-4         # Macro policy learning rate
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # BC-specific training
+  bc_epochs: 10                 # Epochs for behavioral cloning
+  bc_batch_size: 32            # Batch size for BC training
+  action_smoothing: 0.1        # Label smoothing for actions
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+
+# Budget constraints
+budget_constraints:
+  parameter_tolerance: 0.05     # ±5%
+  flop_tolerance: 0.05         # ±5%
+  memory_tolerance: 0.10       # ±10%
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # BC-specific evaluation
+  bc_metrics:
+    - "action_prediction_accuracy"
+    - "expert_policy_imitation_error"
+    - "value_prediction_mse"
+    - "action_entropy"
+    - "plan_length_distribution"
+  
+  # Performance gates (preparatory for AR1)
+  performance_gates:
+    action_accuracy: 0.7        # 70% action prediction accuracy
+    plan_length_compliance: 0.9 # 90% of plans ≤ 3 chunks
+    hysteresis_effectiveness: 0.3 # 30% hysteresis trigger rate
+
+# Expert trace generation
+trace_generation:
+  enabled: true
+  output_file: "data/router_traces.jsonl"
+  
+  # Rule-based expert policy
+  expert_rules:
+    code_tasks:
+      trigger_keywords: ["function", "class", "import", "def"]
+      preferred_expert: 0  # Code expert
+      typical_span: 2
+      rank_budget: 32
+      bias_scale: 1.0
+      
+    formal_tasks:
+      trigger_keywords: ["proof", "theorem", "logic", "formal"]
+      preferred_expert: 1  # Formal expert  
+      typical_span: 3
+      rank_budget: 48
+      bias_scale: 1.2
+      
+    safety_tasks:
+      trigger_keywords: ["safety", "ethical", "harm", "risk"]
+      preferred_expert: 2  # Safety expert
+      typical_span: 1
+      rank_budget: 16
+      bias_scale: 0.8
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "bc_loss"
+    - "action_accuracy"
+    - "value_mse"
+    - "action_entropy"
+    - "expert_imitation_error"
+    - "plan_length_stats"
+    - "hysteresis_stats"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_agentic"
+    tags: ["ar0", "behavioral_cloning", "macro_policy"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+# Output configuration
+output:
+  output_dir: "logs/AR0"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "action_prediction_accuracy"
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 16
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/AR0/training.log"
+  log_action_distributions: true
+  log_expert_trace_stats: true
+  log_plan_length_evolution: true
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 15  # More patience for BC
+  early_stopping_min_delta: 0.005

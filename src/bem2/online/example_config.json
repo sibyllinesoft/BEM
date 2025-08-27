@@ -1,0 +1,141 @@
+{
+  "online_learning": {
+    "learning_rate": 1e-5,
+    "ewc_lambda": 1000.0,
+    "replay_weight": 0.5,
+    "gradient_clip": 1.0,
+    "update_frequency": 10,
+    "safety_threshold": 0.8,
+    "max_iterations_per_update": 5,
+    "warmup_steps": 100,
+    "patience": 5
+  },
+  
+  "streaming": {
+    "max_queue_size": 10000,
+    "batch_timeout": 5.0,
+    "quality_threshold": 0.7,
+    "max_batch_size": 32,
+    "signal_types": ["thumbs_up", "thumbs_down", "tool_success", "tool_failure"],
+    "enable_filtering": true,
+    "deduplication_window": 300
+  },
+  
+  "warmup": {
+    "fisher_samples": 1000,
+    "canary_threshold": 0.9,
+    "safety_margin": 0.1,
+    "max_warmup_time": 3600,
+    "validate_safety": true,
+    "establish_baselines": true
+  },
+  
+  "feedback_processing": {
+    "strategy": "batched",
+    "batch_size": 32,
+    "aggregation_window": 300,
+    "quality_filter_threshold": 0.5,
+    "enable_session_tracking": true,
+    "session_timeout": 1800,
+    "weighting_scheme": "recency_bias"
+  },
+  
+  "replay_buffer": {
+    "max_size": 10000,
+    "enable_prioritized_replay": true,
+    "min_replay_size": 1000,
+    "alpha": 0.6,
+    "beta": 0.4,
+    "epsilon": 1e-6,
+    "max_priority": 1.0
+  },
+  
+  "ewc_regularization": {
+    "lambda_ewc": 1000.0,
+    "fisher_estimation_samples": 1000,
+    "diagonal_only": true,
+    "update_fisher_frequency": 1000,
+    "fisher_ema_decay": 0.9
+  },
+  
+  "canary_testing": {
+    "test_types": ["performance", "coherence", "memory", "drift"],
+    "performance_threshold": 0.95,
+    "coherence_threshold": 0.9,
+    "memory_threshold": 0.8,
+    "drift_threshold": 0.05,
+    "min_test_samples": 100,
+    "early_stopping": true,
+    "timeout_seconds": 300
+  },
+  
+  "drift_monitoring": {
+    "kl_warning_threshold": 0.05,
+    "kl_critical_threshold": 0.1,
+    "kl_emergency_threshold": 0.2,
+    "param_norm_warning_threshold": 1.5,
+    "param_norm_critical_threshold": 2.0,
+    "gradient_norm_threshold": 10.0,
+    "window_size": 100,
+    "check_frequency": 10
+  },
+  
+  "checkpointing": {
+    "save_frequency": 100,
+    "max_checkpoints": 10,
+    "compression": true,
+    "verify_integrity": true,
+    "backup_on_rollback": true
+  },
+  
+  "evaluation": {
+    "target_soak_hours": 24.0,
+    "target_improvement_percent": 1.0,
+    "performance_window_size": 1000,
+    "report_frequency": 3600,
+    "metrics_history_limit": 100000,
+    "enable_continuous_monitoring": true
+  },
+  
+  "safety": {
+    "enable_auto_rollback": true,
+    "rollback_conditions": [
+      "canary_failure",
+      "drift_emergency", 
+      "safety_violation",
+      "performance_degradation"
+    ],
+    "max_consecutive_failures": 3,
+    "cooldown_period": 1800,
+    "emergency_stop_threshold": 0.01
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "file": "bem2_online_learning.log",
+    "max_file_size": "100MB",
+    "backup_count": 5,
+    "console_output": true,
+    "structured_logging": true
+  },
+  
+  "monitoring": {
+    "enable_metrics_export": true,
+    "export_format": "prometheus",
+    "export_port": 8080,
+    "health_check_port": 8081,
+    "alert_thresholds": {
+      "high_rollback_rate": 0.1,
+      "low_improvement_rate": 0.005,
+      "high_drift_rate": 0.05
+    }
+  },
+  
+  "experimental": {
+    "enable_trust_region": true,
+    "trust_region_radius": 0.01,
+    "adaptive_learning_rate": true,
+    "multi_objective_optimization": false,
+    "federated_learning": false
+  }
+}

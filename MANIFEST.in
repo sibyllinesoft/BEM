@@ -1,0 +1,155 @@
+# MANIFEST.in - Package distribution file inclusion rules
+# This file specifies which files should be included in the distribution package
+
+# Core documentation files
+include README.md
+include LICENSE
+include NOTICE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include CODE_OF_CONDUCT.md
+include SECURITY.md
+
+# Configuration files
+include pyproject.toml
+include setup.py
+include Makefile
+include requirements.txt
+include requirements-dev.txt
+
+# Package source files
+recursive-include src *.py
+recursive-include src *.pyx
+recursive-include src *.c
+recursive-include src *.h
+recursive-include src *.pyi
+
+# Configuration and template files
+recursive-include src/bem_core/config *.yaml *.yml *.json *.toml
+recursive-include src/bem2 *.yaml *.yml *.json *.txt *.md
+recursive-include config *.yaml *.yml *.json *.toml
+
+# Documentation
+recursive-include docs *.md *.rst *.txt
+recursive-include docs *.png *.jpg *.jpeg *.gif *.svg
+include docs/README.md
+
+# Scripts (user-facing utilities)
+recursive-include scripts/demos *.py
+recursive-include scripts/setup *.py  
+recursive-include scripts/utilities *.py
+include scripts/train_experiment.py
+include scripts/evaluation/*.py
+
+# Test files (for development installations)
+recursive-include tests *.py
+recursive-include tests *.yaml *.yml *.json
+recursive-include tests/fixtures *.txt *.json *.yaml
+
+# Data files (examples and validation data only)
+recursive-include data/templates *.j2 *.yaml *.json
+include data/test.jsonl
+include data/val.jsonl
+# Note: Large datasets and model files are excluded from distribution
+
+# GitHub community files
+recursive-include .github *.md *.yml *.yaml
+include .github/CODEOWNERS
+include .github/FUNDING.yml
+
+# Experiment configurations (examples only)
+include experiments/S0_baseline.yml
+include experiments/template_comparison_summary.md
+include experiments/experiment_matrix.yaml
+
+# Deployment examples
+recursive-include deployment/manifests *.json
+recursive-include deployment/monitoring *.py
+recursive-include deployment *.yml *.yaml
+
+# Version and build information
+include src/bem_core/_version.py
+include prepare_release.sh
+
+# Include important shell scripts
+include *.sh
+
+# Git and development configuration files
+include .gitignore
+include .pre-commit-config.yaml
+include repomix.config.json
+
+# Exclude patterns for files that should NOT be in distribution
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude *.so
+global-exclude .DS_Store
+global-exclude .git*
+global-exclude .pytest_cache
+global-exclude .mypy_cache
+global-exclude .coverage
+global-exclude .tox
+global-exclude .venv
+global-exclude venv
+global-exclude env
+
+# Exclude large data and model files
+exclude models/base/*
+exclude models/dialogpt-small/*
+exclude models/value/*
+exclude models/vision/*
+exclude data/corpora/*
+exclude data/indices/*
+exclude data/hard_negs.jsonl
+exclude data/train.jsonl
+
+# Exclude experimental results and logs
+prune logs
+prune results
+exclude results/analysis/*.py
+exclude results/*.json
+exclude results/*.jsonl
+exclude results/*.tex
+
+# Exclude archive and legacy files
+prune archive
+exclude src/bem_legacy/kernels/*.cpp
+exclude src/bem_legacy/kernels/*.cu
+
+# Exclude development and temporary files
+exclude .env
+exclude .env.*
+exclude *.log
+exclude *.tmp
+exclude *.temp
+exclude profile_*
+exclude debug_*
+exclude test_output*
+
+# Exclude IDE and editor files
+exclude .vscode/*
+exclude .idea/*
+exclude *.swp
+exclude *.swo
+exclude *~
+
+# Exclude OS-specific files
+exclude Thumbs.db
+exclude .DS_Store
+exclude desktop.ini
+
+# Exclude backup files
+exclude *.bak
+exclude *.backup
+exclude *~
+
+# Exclude compiled documentation
+exclude docs/_build/*
+exclude htmlcov/*
+
+# Special handling for different package types
+# Include only essential files for PyPI distribution while maintaining
+# full functionality for research and development use
+
+# For development installations (pip install -e .), all files are available
+# For distribution packages, only essential files are included

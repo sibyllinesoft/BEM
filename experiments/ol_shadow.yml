@@ -1,0 +1,310 @@
+# OL - Online Learning Shadow Mode Configuration
+# Expected: 24-h soak clean, +≥1% aggregate, rollback never triggered
+
+name: "ol_online_shadow_mode"
+version: "1.0"
+description: "Online controller-only updates in shadow mode with EWC/Prox regularization"
+
+# Base configuration
+base_config: "experiments/ar1_pg.yml"  # Initialize from AR1 best checkpoint
+experiment_type: "online_learning"
+variant_id: "OL"
+training_phase: "shadow_streaming"
+
+# Model architecture (inherit from AR1)
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Online Learning Configuration
+online_learning:
+  enabled: true
+  mode: "shadow"               # Shadow mode - no immediate deployment
+  controller_only: true        # Only update controller parameters
+  between_prompts_only: true   # Updates only between prompts
+  
+  # EWC (Elastic Weight Consolidation) Configuration
+  ewc:
+    enabled: true
+    lambda_ewc: 0.1            # λ_EWC in pseudocode
+    fisher_sample_size: 1000   # Samples for Fisher information
+    fisher_estimation_method: "diagonal"  # Diagonal Fisher approximation
+    update_fisher_frequency: 500  # Re-compute Fisher every N updates
+    
+  # Proximal Regularization Configuration  
+  proximal_regularization:
+    enabled: true
+    lambda_prox: 0.05          # λ_prox in pseudocode
+    reference_model: "previous_checkpoint"  # θ_prev reference
+    prox_type: "l2"            # L2 proximal regularization
+    
+  # Replay Buffer Configuration
+  replay_buffer:
+    enabled: true
+    buffer_size: 10000         # 10k samples as specified
+    min_replay_size: 1000      # Minimum before replay sampling
+    replay_frequency: 5        # Use replay every N updates
+    replay_batch_size: 32      # Batch size for replay
+    sampling_strategy: "uniform"  # Uniform sampling for now
+    
+  # Update scheduling
+  update_frequency: "between_prompts"  # Only between prompts
+  max_updates_per_session: 10         # Max updates per session
+  cooldown_period_sec: 30             # Cooldown between updates
+
+# Canary Gate Configuration
+canary_gates:
+  enabled: true
+  
+  # Canary test suite
+  canary_tests:
+    - name: "basic_functionality"
+      weight: 0.3
+      threshold: 0.95          # 95% pass rate required
+      
+    - name: "safety_compliance"
+      weight: 0.3
+      threshold: 0.98          # 98% safety compliance
+      
+    - name: "performance_regression"
+      weight: 0.2
+      threshold: 0.9           # No >10% performance drop
+      
+    - name: "format_validity"
+      weight: 0.2
+      threshold: 0.95          # 95% format validity
+      
+  # Canary execution
+  run_frequency: 50            # Run canaries every N updates
+  pass_threshold: 0.9          # Minimum 90% overall pass rate
+  consecutive_passes_required: 3  # Must pass 3 times in a row
+  
+  # Auto-rollback on failure
+  auto_rollback: true
+  rollback_steps: 10           # Rollback N steps
+  max_rollback_attempts: 3
+
+# Drift Monitor Configuration
+drift_monitoring:
+  enabled: true
+  
+  # Drift detection methods
+  methods:
+    - "kl_divergence"          # KL divergence from base model
+    - "parameter_norm"         # L2 norm of parameter changes
+    - "activation_statistics"  # Statistics of activation distributions
+    - "performance_degradation" # Performance on held-out set
+    
+  # Thresholds
+  kl_threshold: 0.1            # Maximum allowed KL divergence
+  parameter_norm_threshold: 2.0 # Maximum parameter change norm
+  performance_drop_threshold: 0.05  # 5% performance drop threshold
+  
+  # Monitoring frequency
+  check_frequency: 10          # Check every N updates
+  window_size: 100            # Rolling window for statistics
+  
+  # Drift response
+  drift_response: "rollback"   # "rollback", "freeze", "reduce_lr"
+  drift_tolerance: 3          # Allow N consecutive warnings
+
+# Feedback Processing Configuration
+feedback_processing:
+  enabled: true
+  
+  # Feedback sources
+  sources:
+    - "thumbs_up_down"         # Binary feedback
+    - "tool_success"           # Tool execution success
+    - "user_corrections"       # Explicit corrections
+    - "implicit_feedback"      # Inferred from behavior
+    
+  # Feedback integration
+  feedback_weight: 0.1         # Weight in loss function
+  feedback_memory: 1000        # Remember last N feedback items
+  negative_feedback_weight: 2.0  # Weight negative feedback higher
+  
+  # Quality filtering
+  min_confidence_threshold: 0.7  # Minimum feedback confidence
+  filter_contradictory: true     # Filter conflicting feedback
+
+# Training configuration
+training:
+  # Base learning rates (conservative for online learning)
+  learning_rate: 1e-6          # Very conservative base LR
+  controller_lr: 1e-5           # Controller-specific LR
+  
+  # Online-specific parameters
+  batch_size: 8                # Smaller batches for online
+  gradient_accumulation_steps: 4
+  max_grad_norm: 0.1           # Very strict gradient clipping
+  
+  # Optimizer settings
+  optimizer: "adamw"
+  adam_epsilon: 1e-8
+  weight_decay: 0.01
+  
+  # Learning rate adaptation
+  adaptive_lr: true            # Adapt LR based on performance
+  lr_reduction_factor: 0.5     # Reduce LR on poor performance
+  lr_patience: 100            # Steps to wait before LR reduction
+
+# Data streaming configuration
+data_streaming:
+  # Streaming data source
+  stream_source: "data/feedback_stream.jsonl"
+  stream_format: "jsonl"
+  
+  # Streaming parameters  
+  stream_batch_size: 1         # Process one sample at a time
+  max_stream_length: 10000     # Maximum samples to process
+  stream_timeout_sec: 86400    # 24-hour timeout (86400 sec)
+  
+  # Data preprocessing
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    max_length: 512
+    include_feedback: true
+
+# Budget constraints (minimal overhead for online)
+budget_constraints:
+  memory_overhead_tolerance: 0.05   # 5% memory overhead
+  latency_overhead_tolerance: 0.02  # 2% latency overhead
+  storage_overhead_mb: 100         # 100MB storage overhead
+  enforce_constraints: true
+  abort_on_violation: true
+
+# 24-hour soak test configuration
+soak_test:
+  enabled: true
+  duration_hours: 24           # 24-hour soak test
+  
+  # Soak test metrics
+  success_criteria:
+    zero_rollbacks: true       # No rollbacks triggered
+    aggregate_improvement: 0.01 # +≥1% aggregate improvement
+    canary_pass_rate: 0.95     # 95% canary pass rate
+    drift_alarms: 0            # No drift alarms
+    
+  # Monitoring during soak
+  monitoring_frequency_min: 5   # Monitor every 5 minutes
+  alert_thresholds:
+    consecutive_failures: 3
+    performance_drop_pct: 2.0
+    memory_usage_pct: 90.0
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "time"        # Time-based evaluation
+  eval_frequency_min: 30       # Evaluate every 30 minutes
+  
+  # Online-specific metrics
+  online_metrics:
+    - "aggregate_improvement"   # Mean improvement across EM,F1,BLEU,chrF
+    - "canary_pass_rate"
+    - "drift_score"
+    - "rollback_count"
+    - "update_success_rate"
+    - "feedback_incorporation"
+    - "parameter_stability"
+    
+  # Performance gates
+  performance_gates:
+    min_aggregate_improvement: 0.01  # +≥1% required
+    max_rollbacks: 0                # No rollbacks allowed
+    min_canary_pass_rate: 0.9       # 90% canary pass rate
+    max_drift_score: 0.1            # Maximum drift allowed
+
+# Checkpointing configuration
+checkpointing:
+  enabled: true
+  checkpoint_frequency_min: 60  # Checkpoint every hour
+  max_checkpoints: 48           # Keep 48 hours of checkpoints
+  auto_rollback_checkpoints: 10 # Keep 10 rollback checkpoints
+  
+  # Checkpoint validation
+  validate_checkpoints: true
+  validation_suite: "canary_tests"
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 5             # Log every 5 updates
+  
+  metrics_to_log:
+    - "online_loss"
+    - "ewc_loss"
+    - "prox_loss"
+    - "replay_loss"
+    - "canary_scores"
+    - "drift_metrics"
+    - "feedback_stats"
+    - "parameter_changes"
+    - "update_success_rate"
+  
+  # Real-time monitoring
+  realtime_monitoring: true
+  dashboard_update_sec: 30     # Update dashboard every 30 seconds
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_online"
+    tags: ["ol", "shadow_mode", "streaming", "soak_test"]
+
+# Reproducibility (limited in online setting)
+reproducibility:
+  seed: 42
+  deterministic: false         # Non-deterministic for online learning
+  benchmark: false
+
+# Output configuration
+output:
+  output_dir: "logs/OL"
+  save_frequency_min: 60       # Save every hour
+  log_streaming: true          # Log streaming updates
+  
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 16
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+  
+  # Online-specific requirements
+  persistent_storage_gb: 50    # For checkpoints and logs
+  network_bandwidth_mbps: 100  # For streaming
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/OL/streaming.log"
+  log_online_updates: true
+  log_canary_results: true
+  log_drift_monitoring: true
+  log_feedback_processing: true
+  
+  # Structured logging for monitoring
+  structured_logging: true
+  log_format: "json"
+
+# Safety checks (critical for online learning)
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  enable_memory_monitoring: true
+  enable_performance_monitoring: true
+  
+  # Online-specific safety
+  emergency_stop_conditions:
+    - "memory_usage > 90%"
+    - "consecutive_failures > 5"
+    - "drift_score > 0.2"
+    - "canary_pass_rate < 0.8"
+    
+  # Recovery procedures
+  auto_recovery: true
+  recovery_checkpoint: "best_validated"
+  recovery_cooldown_min: 30

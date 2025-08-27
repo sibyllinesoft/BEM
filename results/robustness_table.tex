@@ -1,0 +1,26 @@
+
+\begin{table}[t]
+\centering
+\caption{Robustness Analysis: Performance Under Challenging Conditions}
+\label{tab:robustness}
+\small
+\begin{tabular}{l|c|c|c|c}
+\toprule
+\textbf{Scenario} & \textbf{Test Examples} & \textbf{Baseline} & \textbf{Static LoRA} & \textbf{BEM P3} \\
+\midrule
+\multirow{2}{*}{\textbf{Distribution Shift}} & \multirow{2}{*}{742} & 0.445 & \cellcolor{red!20}0.382 & \textbf{0.441} \\
+& & (0.430, 0.460) & (0.360, 0.407) & (0.426, 0.457) \\
+\midrule
+\multirow{2}{*}{\textbf{Low-Quality Retrieval}} & \multirow{2}{*}{628} & 0.425 & \cellcolor{red!20}0.397 & \textbf{0.419} \\
+& & (0.407, 0.443) & (0.368, 0.421) & (0.401, 0.437) \\
+\midrule
+\multirow{2}{*}{\textbf{Multi-Task Interference}} & \multirow{2}{*}{856} & 0.448 & \cellcolor{red!20}0.404 & \textbf{0.445} \\
+& & (0.434, 0.462) & (0.378, 0.431) & (0.429, 0.461) \\
+\midrule
+\multirow{2}{*}{\textbf{Out-of-Distribution}} & \multirow{2}{*}{591} & 0.435 & \cellcolor{red!20}0.387 & \textbf{0.438} \\
+& & (0.418, 0.451) & (0.358, 0.415) & (0.420, 0.456) \\
+\midrule
+\textbf{Average Degradation} & -- & -- & \textbf{-10.4\%} & \textbf{-0.6\%} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,65 @@
+base_config: performance_variant.yaml
+experiment_name: AR0_behavior_cloning
+description: Train macro-policy using synthetic routing traces (BC phase)
+macro_policy:
+  chunk_summary_dim: 512
+  retrieval_dim: 64
+  vision_dim: 768
+  value_dim: 32
+  hidden_dim: 256
+  num_layers: 3
+  dropout: 0.1
+  hysteresis_tau: 0.5
+  max_span: 4
+composition:
+  attachment_points:
+  - attention.w_o
+  - mlp.w_down
+  trust_region_tau: 1.0
+  spectral_budget: 2.0
+  frobenius_budget: 5.0
+  cache_safe_only: true
+router:
+  chunk_size: 128
+  num_experts: 3
+  hysteresis_tau: 0.5
+  trust_region_tau: 1.0
+  max_sequence_length: 2048
+  enable_routing_stats: true
+  enable_latency_tracking: true
+trace_generation:
+  traces_path: data/router_traces.jsonl
+  chunk_size: 128
+  max_chunks_per_trace: 20
+  num_traces: 10000
+  seed: 42
+  domain_distribution:
+    Code: 0.4
+    Formal: 0.3
+    Safety: 0.2
+    Mixed: 0.1
+training:
+  batch_size: 64
+  learning_rate: 3e-4
+  num_epochs: 20
+  warmup_steps: 1000
+  max_grad_norm: 1.0
+  weight_decay: 1e-5
+  eval_every: 500
+  save_every: 1000
+  log_every: 100
+train_eval_split: 0.8
+eval_batch_size: 32
+eval_seq_len: 1024
+eval_batches: 20
+expected_metrics:
+  min_cache_safety_rate: 0.95
+  max_flip_rate: 0.3
+  target_expert_utilization:
+  - 0.4
+  - 0.3
+  - 0.3
+quality_gates:
+  bc_convergence_epochs: 15
+  min_eval_improvement: 0.01
+  max_training_time_hours: 2

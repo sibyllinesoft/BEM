@@ -1,0 +1,75 @@
+base_config: performance_variant.yaml
+name: PT3_kronecker
+description: PT3 Kronecker factorization at W_down with fused kernel optimization
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_pt3_kronecker
+pt3_config:
+  u_rank: 8
+  v_rank: 8
+  u_dim: 64
+  v_dim: 64
+  use_fused_kernel: true
+  block_size: 128
+  memory_efficient: true
+  init_method: svd
+  init_scale: 0.1
+  orthogonal_reg: 0.01
+  diversity_reg: 0.001
+  max_singular_value: 1.0
+  fro_budget: 0.8
+  attachment_site: W_down
+budget:
+  baseline_params: 124964096
+  baseline_flops: 1000000
+  baseline_memory_mb: 512.0
+  tolerance: 0.05
+  enforce_during_training: true
+training:
+  learning_rate: 5e-4
+  batch_size: 32
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 1e-4
+  variant_lr_multiplier: 1.5
+  orthogonality_weight: 0.01
+  diversity_weight: 0.001
+  kronecker_lr_multiplier: 1.5
+  projection_lr_multiplier: 1.0
+  gradient_clip_norm: 1.0
+  spectral_penalty_weight: 0.1
+  budget_penalty_weight: 1.0
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  early_stopping_patience: 5
+evaluation:
+  metrics:
+  - exact_match
+  - f1
+  - bleu
+  - rouge
+  - chrf
+  test_split: test
+  expected_improvement:
+    primary_metric: f1_score
+    secondary_metrics:
+    - chrf_score
+    - bleu_score
+    min_improvement_pct: 0.5
+    max_improvement_pct: 1.5
+  compression_analysis:
+    report_compression_ratio: true
+    report_effective_rank: true
+    rank_utilization_threshold: 0.8
+metadata:
+  variant_type: PT3
+  attachment_sites:
+  - W_down
+  performance_target: "+0.5\u20131.5% chrF/BLEU improvement"
+  budget_constraint: "\xB15% params/FLOPs vs v1.3-stack anchor"
+  promotion_criteria: Pareto frontier shift OR CI-backed Slice-B gains
+  special_features:
+  - kronecker_factorization
+  - fused_kernel
+  - single_site_attachment

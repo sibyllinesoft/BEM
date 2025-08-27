@@ -1,0 +1,75 @@
+# Code Owners for BEM (Basis Extension Modules)
+#
+# This file defines individuals and teams responsible for different parts of the codebase.
+# Code owners are automatically assigned as reviewers for pull requests affecting their areas.
+# 
+# For more information: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners - default reviewers for everything
+* @nathanrice
+
+# Core BEM Implementation
+/src/bem_core/ @nathanrice
+/src/bem2/ @nathanrice
+
+# Research and Experimental Code
+/src/bem_legacy/ @nathanrice
+/experiments/ @nathanrice
+
+# Configuration and Infrastructure
+/setup.py @nathanrice
+/pyproject.toml @nathanrice
+/requirements*.txt @nathanrice
+/Makefile @nathanrice
+
+# Documentation
+/docs/ @nathanrice
+/README.md @nathanrice
+/CONTRIBUTING.md @nathanrice
+/CHANGELOG.md @nathanrice
+/SECURITY.md @nathanrice
+/CODE_OF_CONDUCT.md @nathanrice
+
+# GitHub Community Files
+/.github/ @nathanrice
+
+# Testing Infrastructure
+/tests/ @nathanrice
+
+# Deployment and Operations
+/deployment/ @nathanrice
+/scripts/setup/ @nathanrice
+
+# Research Papers and Publications
+/archive/paper/ @nathanrice
+
+# Statistical Analysis and Results
+/results/analysis/ @nathanrice
+/scripts/utilities/statistical_analysis.py @nathanrice
+
+# Security-Critical Files
+/SECURITY.md @nathanrice
+/scripts/validation/ @nathanrice
+
+# Build and Release
+/scripts/release_preparation/ @nathanrice
+/prepare_release.sh @nathanrice
+
+# Model Assets and Data (requires careful review)
+/data/ @nathanrice
+/models/ @nathanrice
+
+# CUDA Kernels and Performance-Critical Code
+/src/bem_legacy/kernels/ @nathanrice
+
+# Safety and Security Components  
+/src/bem2/safety/ @nathanrice
+/src/bem2/security/ @nathanrice
+
+# Advanced Routing and AI Components
+/src/bem2/router/ @nathanrice
+/src/bem2/multimodal/ @nathanrice
+/src/bem2/online/ @nathanrice
+
+# Demo Scripts (public-facing examples)
+/scripts/demos/ @nathanrice

@@ -1,0 +1,129 @@
+base_config: performance_variant.yaml
+name: mission_c_alignment_enforcer
+version: '1.0'
+model:
+  base_model: bem_v13_anchor
+  safety_basis_type: orthogonal_reserved
+  runtime_adjustable: true
+  per_layer_basis: true
+safety_basis:
+  basis_dimension: 64
+  orthogonality_constraint: true
+  value_model_gating: true
+  constitution_scorer: true
+  dynamic_knob_range:
+  - 0.0
+  - 1.0
+  knob_granularity: 0.1
+training:
+  method: lagrangian_optimization
+  batch_size: 32
+  learning_rate: 3e-5
+  safety_weight: 1.0
+  orthogonality_weight: 0.5
+  num_epochs: 30
+  safety_curriculum:
+    stage_1: basic_violations
+    stage_2: complex_scenarios
+    stage_3: adversarial_examples
+data:
+  training_data: data/safety_training.jsonl
+  red_team_suite: eval/suites/safety.yml
+  violation_categories:
+  - harmful_content
+  - misinformation
+  - privacy_violation
+  - bias_amplification
+  - prompt_injection
+  - jailbreak_attempts
+constitution:
+  value_model: constitutional_ai_v2
+  scoring_method: multi_aspect
+  helpfulness_weight: 0.7
+  harmlessness_weight: 0.8
+  honesty_weight: 0.9
+metrics:
+  primary:
+  - violation_rate
+  - em_f1_drop
+  - helpfulness_delta
+  secondary:
+  - orthogonality_drift
+  - latency_overhead
+  - knob_responsiveness
+  - false_positive_rate
+  - robustness_to_attacks
+acceptance:
+  min_violation_reduction: 30
+  max_em_f1_drop: 1.0
+  max_latency_overhead: 10
+  orthogonality_preservation: 0.95
+  knob_effectiveness: 0.8
+red_team:
+  attack_types:
+  - direct_harmful_requests
+  - jailbreak_prompts
+  - role_playing_attacks
+  - prompt_injection
+  - adversarial_examples
+  evaluation_suite: eval/suites/red_team.yml
+  dynamic_modulation_test: true
+ablations:
+  lagrange_weights:
+  - 0.1
+  - 0.5
+  - 1.0
+  - 2.0
+  safety_only_vs_safety_style: true
+  knob_granularities:
+  - 0.05
+  - 0.1
+  - 0.2
+  with_without_trust_region: true
+  basis_dimensions:
+  - 32
+  - 64
+  - 128
+risk_mitigation:
+  over_regularization:
+    staged_knob_introduction: true
+    per_category_caps: true
+    performance_monitoring: true
+  adversarial_robustness:
+    adversarial_training: true
+    gradient_masking_detection: true
+resources:
+  gpu_memory: 24GB
+  red_team_compute: distributed
+  evaluation_time: extensive
+  estimated_time: 14 days
+timeline:
+  d0_7: Basis init, value model hookup
+  d8_21: "Grid over \u03BB, knob curves"
+  d22_45: Red-team campaign, category analysis
+  d46_60: Deployable knob + paper figs
+statistical:
+  bootstrap_samples: 10000
+  paired_test: true
+  fdr_correction: true
+  random_seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  category_wise_analysis: true
+monitoring:
+  real_time_violation_detection: true
+  drift_monitoring: true
+  performance_tracking: true
+  alert_system:
+    violation_spike_threshold: 1.5
+    performance_drop_threshold: 2.0
+    orthogonality_loss_threshold: 0.1
+deployment:
+  knob_api_enabled: true
+  runtime_adjustment: true
+  audit_logging: true
+  rollback_capability: true
+  a_b_testing_framework: true

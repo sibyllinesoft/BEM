@@ -1,0 +1,67 @@
+{
+  "documents": [
+    {
+      "id": "doc_0",
+      "text": "Machine learning is a subset of artificial intelligence that enables computers to learn from data.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_1",
+      "text": "Neural networks are computing systems inspired by biological neural networks found in animal brains.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_2",
+      "text": "Deep learning uses multiple layers of neural networks to model and understand complex patterns in data.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_3",
+      "text": "Natural language processing combines computational linguistics with machine learning to help computers understand human language.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_4",
+      "text": "Computer vision is a field of artificial intelligence that trains computers to interpret and understand visual information.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_5",
+      "text": "Reinforcement learning is an area of machine learning where agents learn to make decisions by receiving rewards or penalties.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_6",
+      "text": "Supervised learning uses labeled training data to teach algorithms to classify data or predict outcomes accurately.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_7",
+      "text": "Unsupervised learning finds hidden patterns or structures in data without using labeled examples for training.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_8",
+      "text": "Transfer learning applies knowledge gained from one domain or task to improve performance on a related task.",
+      "source": "synthetic"
+    },
+    {
+      "id": "doc_9",
+      "text": "Generative AI creates new content like text, images, or audio by learning patterns from existing training data.",
+      "source": "synthetic"
+    }
+  ],
+  "features": {
+    "coverage_score": 0.0014193759998306632,
+    "consistency_score": 0.9001783728599548,
+    "embedding_dim": 384,
+    "corpus_size": 10,
+    "embedding_stats": {
+      "mean_norm": 1.0,
+      "std_norm": 1.8848643534852272e-08
+    }
+  },
+  "encoder": "sentence-transformers/all-MiniLM-L6-v2",
+  "index_type": "HNSW",
+  "timestamp": 1755976066.363811
+}

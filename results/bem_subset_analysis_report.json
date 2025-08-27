@@ -1,0 +1,54 @@
+{
+  "metric": "exact_match",
+  "subset_analyses": {
+    "high_retrieval_quality": {
+      "subset_key": "high_retrieval_quality",
+      "error": "No data points meet subset criteria",
+      "subset_size": 0
+    },
+    "cache_efficient": {
+      "subset_key": "cache_efficient",
+      "criterion_name": "Cache Efficient Scenarios",
+      "description": "High cache hit rate scenarios where BEM's caching is most valuable",
+      "theoretical_basis": "BEM's cache-safe design provides advantages in high cache hit scenarios",
+      "subset_size": 10,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 5,
+        "BEM P4 Composition": 5
+      },
+      "comparisons": {},
+      "metric": "exact_match"
+    },
+    "dynamic_routing_beneficial": {
+      "subset_key": "dynamic_routing_beneficial",
+      "criterion_name": "Dynamic Routing Beneficial",
+      "description": "High entropy scenarios where dynamic routing provides value",
+      "theoretical_basis": "BEM's dynamic routing should excel when expert diversity is valuable",
+      "subset_size": 8,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 4,
+        "BEM P4 Composition": 4
+      },
+      "comparisons": {},
+      "metric": "exact_match"
+    },
+    "high_confidence_routing": {
+      "subset_key": "high_confidence_routing",
+      "criterion_name": "High Confidence Routing",
+      "description": "Scenarios with confident controller decisions",
+      "theoretical_basis": "BEM should perform best when routing decisions are confident",
+      "subset_size": 5,
+      "subset_breakdown": {
+        "BEM P3 Retrieval-Aware": 5
+      },
+      "comparisons": {},
+      "metric": "exact_match"
+    }
+  },
+  "summary": {
+    "total_subsets_analyzed": 4,
+    "subsets_with_data": 3,
+    "significant_comparisons": 0,
+    "multiple_comparisons_correction": "N/A"
+  }
+}

@@ -1,0 +1,2 @@
+{"input": "Summarize: Climate change refers to long-term shifts in temperatures and weather patterns.", "output": "Climate change involves long-term changes in global temperatures and weather.", "source": "synthetic", "task_type": "summarization"}
+{"input": "Question: How many continents are there?", "output": "There are seven continents on Earth.", "source": "synthetic", "task_type": "question_answering"}

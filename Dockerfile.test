@@ -1,0 +1,127 @@
+# Multi-stage Dockerfile for testing
+# Optimized for CI/CD pipelines and local development testing
+
+ARG PYTHON_VERSION=3.11
+FROM python:${PYTHON_VERSION}-slim as base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH="/app/src" \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Create app user
+RUN useradd --create-home --shell /bin/bash app
+WORKDIR /app
+RUN chown app:app /app
+
+# Install Python dependencies
+FROM base as dependencies
+
+# Copy requirements first for better caching
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt && \
+    pip install -r requirements-dev.txt
+
+# Copy source code and install package
+COPY pyproject.toml MANIFEST.in ./
+COPY src/ ./src/
+RUN pip install -e .
+
+# Testing stage
+FROM dependencies as testing
+
+# Copy test configuration
+COPY pytest.ini mypy.ini ./
+COPY tests/ ./tests/
+
+# Create directories for test artifacts
+RUN mkdir -p test_artifacts logs && \
+    chown -R app:app test_artifacts logs
+
+# Switch to app user
+USER app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import bem_core; print('BEM package available')" || exit 1
+
+# Default command runs tests
+CMD ["pytest", "tests/", "-v", "--tb=short", "--maxfail=5"]
+
+# Development testing stage with additional tools
+FROM testing as development
+
+USER root
+
+# Install additional development tools
+RUN pip install \
+    ipython \
+    jupyter \
+    memory_profiler \
+    py-spy \
+    line_profiler
+
+# Install system tools for debugging
+RUN apt-get update && apt-get install -y \
+    htop \
+    strace \
+    tcpdump \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+USER app
+
+# Expose Jupyter port for debugging
+EXPOSE 8888
+
+CMD ["bash"]
+
+# Production-like testing stage
+FROM testing as production-test
+
+# Copy deployment configs
+COPY docker-compose.test.yml ./
+
+# Run production-like tests
+CMD ["pytest", "tests/", "-v", "-m", "not slow", "--tb=line"]
+
+# Performance testing stage
+FROM testing as performance
+
+# Install performance testing tools
+USER root
+RUN pip install \
+    pytest-benchmark \
+    memory-profiler \
+    psutil
+
+USER app
+
+# Run performance tests
+CMD ["pytest", "tests/", "-v", "-m", "performance", "--benchmark-only"]
+
+# Security testing stage  
+FROM testing as security
+
+USER root
+
+# Install security testing tools
+RUN pip install \
+    bandit[toml] \
+    safety \
+    semgrep
+
+# Run security tests
+USER app
+CMD ["bash", "-c", "bandit -r src/ && safety check && pytest tests/ -v -m security"]

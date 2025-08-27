@@ -1,0 +1,337 @@
+# GitHub Repository Settings Configuration
+# This file configures repository settings, branch protection, and automation
+
+repository:
+  name: BEM
+  description: "🧠 BEM - Biological Entity Modeling: Advanced AI system for biological sequence analysis and entity modeling using transformer architectures"
+  homepage: https://github.com/your-username/BEM
+  topics:
+    - machine-learning
+    - artificial-intelligence
+    - biology
+    - bioinformatics
+    - transformer
+    - pytorch
+    - nlp
+    - sequence-analysis
+    - protein-analysis
+    - biological-modeling
+    - deep-learning
+    - python
+    - research
+    - scientific-computing
+    - computational-biology
+  
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  
+  default_branch: main
+  
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+# Branch Protection Rules
+branches:
+  - name: main
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "ci/tests"
+          - "ci/lint"
+          - "ci/security"
+          - "ci/docs"
+          - "ci/performance"
+      
+      enforce_admins: true
+      
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: false
+      
+      restrictions:
+        apps: []
+        users: []
+        teams: []
+      
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+  
+  - name: develop
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "ci/tests"
+          - "ci/lint"
+      
+      enforce_admins: false
+      
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+      
+      allow_force_pushes: false
+      allow_deletions: false
+
+# Labels for Issues and Pull Requests
+labels:
+  # Type Labels
+  - name: "type: bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+  
+  - name: "type: feature"
+    color: "0075ca"
+    description: "New feature or request"
+  
+  - name: "type: enhancement"
+    color: "a2eeef"
+    description: "Enhancement to existing functionality"
+  
+  - name: "type: documentation"
+    color: "0052cc"
+    description: "Improvements or additions to documentation"
+  
+  - name: "type: refactor"
+    color: "fbca04"
+    description: "Code refactoring without functionality changes"
+  
+  - name: "type: performance"
+    color: "ff6b35"
+    description: "Performance improvement"
+  
+  - name: "type: security"
+    color: "b60205"
+    description: "Security-related issue"
+  
+  - name: "type: maintenance"
+    color: "fef2c0"
+    description: "Repository maintenance and housekeeping"
+  
+  # Priority Labels
+  - name: "priority: critical"
+    color: "b60205"
+    description: "Critical priority - needs immediate attention"
+  
+  - name: "priority: high"
+    color: "d73a4a"
+    description: "High priority"
+  
+  - name: "priority: medium"
+    color: "fbca04"
+    description: "Medium priority"
+  
+  - name: "priority: low"
+    color: "0e8a16"
+    description: "Low priority"
+  
+  # Status Labels
+  - name: "status: needs-investigation"
+    color: "d4c5f9"
+    description: "Needs investigation or more information"
+  
+  - name: "status: blocked"
+    color: "b60205"
+    description: "Blocked by external dependency or issue"
+  
+  - name: "status: in-progress"
+    color: "fbca04"
+    description: "Work in progress"
+  
+  - name: "status: needs-review"
+    color: "0052cc"
+    description: "Needs code review"
+  
+  - name: "status: ready-to-merge"
+    color: "0e8a16"
+    description: "Ready to be merged"
+  
+  # Component Labels
+  - name: "component: model"
+    color: "7057ff"
+    description: "Related to model architecture or training"
+  
+  - name: "component: data"
+    color: "008672"
+    description: "Related to data processing or datasets"
+  
+  - name: "component: api"
+    color: "0052cc"
+    description: "Related to API or interfaces"
+  
+  - name: "component: documentation"
+    color: "0e8a16"
+    description: "Documentation changes"
+  
+  - name: "component: testing"
+    color: "f9d0c4"
+    description: "Testing infrastructure or test cases"
+  
+  - name: "component: ci/cd"
+    color: "5319e7"
+    description: "Continuous integration or deployment"
+  
+  # Good First Issue
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+  
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  
+  # Research Labels
+  - name: "research: experiment"
+    color: "c2e0c6"
+    description: "Research experiment or investigation"
+  
+  - name: "research: paper"
+    color: "bfd4f2"
+    description: "Related to research paper or publication"
+  
+  # Dependencies
+  - name: "dependencies"
+    color: "0366d6"
+    description: "Pull requests that update a dependency file"
+
+# Milestones
+milestones:
+  - title: "v1.0.0 - Initial Release"
+    description: "First stable release with core BEM functionality"
+    state: open
+  
+  - title: "v1.1.0 - Performance Optimization"
+    description: "Performance improvements and scalability enhancements"
+    state: open
+  
+  - title: "v1.2.0 - Advanced Features"
+    description: "Advanced modeling features and new architectures"
+    state: open
+  
+  - title: "v2.0.0 - Next Generation"
+    description: "Major architecture overhaul and new capabilities"
+    state: open
+
+# Collaborators and Teams (adjust based on actual repository setup)
+# Note: This section should be customized based on actual team structure
+collaborators:
+  # Add collaborators here as needed
+  # - username: collaborator1
+  #   permission: write
+  # - username: collaborator2
+  #   permission: admin
+
+teams:
+  # Add teams here as needed
+  # - name: core-team
+  #   permission: admin
+  # - name: contributors
+  #   permission: write
+
+# Repository Webhooks (optional)
+webhooks:
+  # Example webhook configurations
+  # - url: https://your-webhook-url.com/github
+  #   content_type: json
+  #   events:
+  #     - push
+  #     - pull_request
+  #     - issues
+  #   active: true
+  #   insecure_ssl: false
+
+# Apps and Integrations
+apps:
+  # Automatically configure common apps
+  - name: "dependabot-preview"
+  - name: "codecov"
+  - name: "whitesource-bolt-for-github"
+
+# Repository Environment Variables (for Actions)
+# Note: Sensitive values should be set manually in GitHub UI
+environments:
+  - name: production
+    protection_rules:
+      - type: required_reviewers
+        required_reviewers:
+          - "@core-team"
+    deployment_branch_policy:
+      protected_branches: true
+      custom_branch_policies: false
+  
+  - name: staging
+    protection_rules: []
+    deployment_branch_policy:
+      protected_branches: false
+      custom_branch_policies: true
+      custom_branches:
+        - "develop"
+        - "staging/*"
+
+# Pages Configuration (if using GitHub Pages)
+pages:
+  source:
+    branch: gh-pages
+    path: /
+  build_type: workflow
+
+# Security and Analysis
+security:
+  secret_scanning:
+    status: enabled
+  
+  push_protection:
+    status: enabled
+  
+  dependency_graph:
+    status: enabled
+  
+  vulnerable_dependencies:
+    status: enabled
+  
+  private_vulnerability_reporting:
+    status: enabled
+
+# Repository Rules (GitHub's newer rule system)
+rules:
+  - name: "Protect main branch"
+    target: branch
+    enforcement: active
+    conditions:
+      ref_name:
+        include:
+          - "main"
+    rules:
+      - type: pull_request
+        parameters:
+          required_approving_review_count: 1
+          dismiss_stale_reviews_on_push: true
+          require_code_owner_review: true
+          require_last_push_approval: false
+      
+      - type: required_status_checks
+        parameters:
+          strict_required_status_checks_policy: true
+          required_status_checks:
+            - "ci/tests"
+            - "ci/lint"
+            - "ci/security"
+            - "ci/docs"
+      
+      - type: non_fast_forward
+      - type: creation
+      - type: deletion
+      - type: required_linear_history

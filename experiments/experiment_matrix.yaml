@@ -1,0 +1,33 @@
+budget_constraints:
+  attachment_points:
+  - W_O
+  - W_down
+  cache_safety: No K/V edits except V11 windows
+  max_param_increase_pct: 5.0
+experiment_matrix:
+  experiments:
+  - architecture: static_lora
+    description: Static LoRA baseline with same rank schedule and attachment points
+      as BEM
+    id: L0_static_lora
+  - architecture: bem_v11_stable
+    description: BEM-v1.1-stable with E1+E3+E4 components
+    id: B1_bem_v11_stable
+  - architecture: dual_path_lora
+    description: Dual-Path LoRA++ with orthogonality regularization
+    id: V2_dual_path
+  - architecture: film_lite_bem
+    description: "FiLM-lite with \u03B3(z),\u03B2(z) on MLP output, building on B1"
+    id: V7_film_lite
+  - architecture: learned_cache_bem
+    description: Learned Cache Policy with K/V update windows
+    id: V11_learned_cache_policy
+  seeds_per_experiment: 5
+  total_experiments: 5
+  total_runs: 25
+quality_gates:
+  all_metrics_improve: Slice A & B
+  kv_hit_rate: "\u2265 80%"
+  latency_budget: "p50 \u2264 +15%"
+  leak_rate: negligible
+  vram_delta: "\u2264 \xB15%"

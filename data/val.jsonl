@@ -1,0 +1,2 @@
+{"input": "Summarize: Neural networks are computing systems inspired by biological neural networks.", "output": "Neural networks are computing systems based on biological brain structures.", "source": "synthetic", "task_type": "summarization"}
+{"input": "Question: What is the largest planet in our solar system?", "output": "Jupiter is the largest planet in our solar system.", "source": "synthetic", "task_type": "question_answering"}

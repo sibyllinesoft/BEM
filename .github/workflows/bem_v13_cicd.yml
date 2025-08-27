@@ -1,0 +1,439 @@
+name: BEM v1.3 Performance+Agentic Sprint CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      run_full_pipeline:
+        description: 'Run full experimental pipeline'
+        required: false
+        default: true
+        type: boolean
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  CUDA_VERSION: '11.8'
+  PYTORCH_VERSION: '2.1.0'
+  
+jobs:
+  # Stage 1: Code Quality and Fast Checks
+  quality-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety black isort mypy pytest-cov
+    
+    - name: Code formatting check
+      run: |
+        black --check --diff .
+        isort --check-only --diff .
+    
+    - name: Type checking
+      run: |
+        mypy bem/ --ignore-missing-imports
+    
+    - name: Security scan
+      run: |
+        bandit -r . -f json -o security-report.json
+        safety check --json --output safety-report.json
+        
+    - name: Lint check
+      run: |
+        python -m flake8 bem/ scripts/ --max-line-length=100
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          security-report.json
+          safety-report.json
+  
+  # Stage 2: Unit Tests
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    timeout-minutes: 30
+    if: ${{ !inputs.skip_tests }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-xdist pytest-timeout
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ \
+          --cov=bem \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=80 \
+          --maxfail=5 \
+          --timeout=300 \
+          -v
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          coverage.xml
+          htmlcov/
+          pytest-report.xml
+
+  # Stage 3: Integration Tests (GPU Required)
+  integration-tests:
+    runs-on: [self-hosted, gpu]  # Requires self-hosted runner with GPU
+    needs: unit-tests
+    timeout-minutes: 120
+    if: ${{ !inputs.skip_tests && (github.event_name == 'push' || inputs.run_full_pipeline) }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Check GPU availability
+      run: |
+        nvidia-smi
+        python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU count: {torch.cuda.device_count()}')"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-timeout
+    
+    - name: Prepare test data
+      run: |
+        python scripts/prepare_data.py --test-mode
+        python scripts/build_faiss.py --test-mode --out indices/test.faiss
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ \
+          --timeout=3600 \
+          -v \
+          --tb=short
+    
+    - name: Cleanup GPU memory
+      if: always()
+      run: |
+        python -c "import torch; torch.cuda.empty_cache()" || true
+        nvidia-smi
+  
+  # Stage 4: Experimental Pipeline (Full BEM Training)
+  experimental-pipeline:
+    runs-on: [self-hosted, gpu]
+    needs: [quality-gates, unit-tests]
+    timeout-minutes: 480  # 8 hours max
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || inputs.run_full_pipeline }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Check system resources
+      run: |
+        echo "=== System Information ==="
+        nvidia-smi
+        df -h
+        free -h
+        nproc
+        
+        echo "=== Python Environment ==="
+        python --version
+        pip list | grep -E "(torch|transformers|accelerate)"
+    
+    - name: Start health monitor
+      run: |
+        nohup python scripts/workflow_health_monitor.py \
+          --logs-dir logs \
+          --check-interval 300 \
+          --alert-webhook ${{ secrets.SLACK_WEBHOOK }} \
+          > health_monitor.log 2>&1 &
+        echo $! > health_monitor.pid
+    
+    - name: Run BEM experimental pipeline
+      id: bem_pipeline
+      run: |
+        export WANDB_API_KEY=${{ secrets.WANDB_API_KEY }}
+        export HF_TOKEN=${{ secrets.HF_TOKEN }}
+        
+        python scripts/ci_cd_integration.py \
+          --action ci \
+          --branch ${{ github.ref_name }} \
+          --commit-sha ${{ github.sha }} \
+          --github-token ${{ secrets.GITHUB_TOKEN }} \
+          --repo-name ${{ github.repository }}
+      
+    - name: Validate statistical gates
+      run: |
+        python scripts/validate_statistical_gates.py \
+          --stats analysis/stats.json \
+          --gates gates_bem2.yaml \
+          --output gate_validation.json
+    
+    - name: Stop health monitor
+      if: always()
+      run: |
+        if [ -f health_monitor.pid ]; then
+          kill $(cat health_monitor.pid) || true
+          rm health_monitor.pid
+        fi
+    
+    - name: Upload experiment artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: experiment-results-${{ github.sha }}
+        path: |
+          logs/
+          analysis/
+          paper/
+          dist/
+          gate_validation.json
+          health_monitor.log
+        retention-days: 30
+    
+    - name: Upload reproducibility package
+      uses: actions/upload-artifact@v3
+      if: success()
+      with:
+        name: reproducibility-package
+        path: |
+          dist/repro_manifest.json
+          dist/run.sh
+    
+    - name: Generate summary report
+      if: always()
+      run: |
+        python scripts/generate_pipeline_summary.py \
+          --pipeline-result ${{ steps.bem_pipeline.outcome }} \
+          --commit-sha ${{ github.sha }} \
+          --output pipeline_summary.md
+    
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('pipeline_summary.md')) {
+            const summary = fs.readFileSync('pipeline_summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+          }
+  
+  # Stage 5: Deployment
+  deploy:
+    runs-on: ubuntu-latest
+    needs: experimental-pipeline
+    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: 
+      name: ${{ inputs.environment || 'development' }}
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: experiment-results-${{ github.sha }}
+        path: artifacts/
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4  
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Deploy to environment
+      id: deploy
+      run: |
+        python scripts/ci_cd_integration.py \
+          --action deploy \
+          --environment ${{ inputs.environment || 'development' }} \
+          --github-token ${{ secrets.GITHUB_TOKEN }} \
+          --repo-name ${{ github.repository }}
+    
+    - name: Run post-deployment health check
+      run: |
+        python scripts/post_deployment_health_check.py \
+          --environment ${{ inputs.environment || 'development' }}
+    
+    - name: Create deployment record
+      run: |
+        echo "Creating deployment record..."
+        cat > deployment_record.json << EOF
+        {
+          "commit_sha": "${{ github.sha }}",
+          "environment": "${{ inputs.environment || 'development' }}",
+          "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "deployed_by": "${{ github.actor }}",
+          "workflow_run": "${{ github.run_id }}"
+        }
+        EOF
+        
+        echo "deployment_record=$(cat deployment_record.json)" >> $GITHUB_OUTPUT
+  
+  # Stage 6: Notification and Cleanup
+  notify:
+    runs-on: ubuntu-latest
+    needs: [quality-gates, unit-tests, integration-tests, experimental-pipeline, deploy]
+    if: always()
+    
+    steps:
+    - name: Determine overall status
+      id: status
+      run: |
+        if [[ "${{ needs.quality-gates.result }}" == "success" && \
+              "${{ needs.unit-tests.result }}" == "success" && \
+              ("${{ needs.integration-tests.result }}" == "success" || "${{ needs.integration-tests.result }}" == "skipped") && \
+              ("${{ needs.experimental-pipeline.result }}" == "success" || "${{ needs.experimental-pipeline.result }}" == "skipped") && \
+              ("${{ needs.deploy.result }}" == "success" || "${{ needs.deploy.result }}" == "skipped") ]]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "message=BEM v1.3 CI/CD pipeline completed successfully" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "message=BEM v1.3 CI/CD pipeline failed" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Send Slack notification
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ steps.status.outputs.status }}
+        channel: '#bem-notifications'
+        text: |
+          ${{ steps.status.outputs.message }}
+          
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Actor: ${{ github.actor }}
+          
+          Quality Gates: ${{ needs.quality-gates.result }}
+          Unit Tests: ${{ needs.unit-tests.result }}
+          Integration Tests: ${{ needs.integration-tests.result }}
+          Experimental Pipeline: ${{ needs.experimental-pipeline.result }}
+          Deployment: ${{ needs.deploy.result }}
+          
+          View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    
+    - name: Create GitHub release
+      if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.3-${{ github.run_number }}
+        release_name: BEM v1.3 Build ${{ github.run_number }}
+        body: |
+          Automated release from BEM v1.3 CI/CD pipeline
+          
+          **Commit**: ${{ github.sha }}
+          **Build**: ${{ github.run_number }}
+          **Experimental Results**: See attached artifacts
+          
+          **Key Improvements**:
+          - Performance track variants (PT1-PT4)
+          - Agentic Router v1 with trust region
+          - Online learning capabilities
+          - Multimodal integration
+          - Safety value alignment
+          
+          **Quality Gates**: All passed ✅
+          **Statistical Validation**: BCa bootstrap with FDR correction
+          **Reproducibility**: Complete package included
+        draft: false
+        prerelease: false

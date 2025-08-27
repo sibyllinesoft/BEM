@@ -1,0 +1,149 @@
+base_config: performance_variant.yaml
+name: mission_d_sep
+version: '1.0'
+model:
+  base_size: 270M
+  target_size: 1B
+  architecture: transformer
+  sep_enabled: true
+sep:
+  paired_view_training: true
+  prediction_equivariance: true
+  representation_invariance: true
+  phase_0_clamp: true
+  progressive_thaw: true
+  scramblers:
+    bijective:
+    - character_permutation
+    - word_shuffle
+    - token_rotation
+    syntax:
+    - parse_tree_scramble
+    - dependency_shuffle
+    - bracket_permutation
+    semantic:
+    - synonym_substitution
+    - paraphrase_generation
+    - concept_mapping
+training:
+  phase_0:
+    method: joint_loss
+    batch_size: 64
+    learning_rate: 1e-4
+    num_epochs: 100
+    clamp_layers: all
+    loss_weights:
+      kl_loss: 1.0
+      invariance_loss: 0.5
+      ce_trickle: 0.1
+  thaw_schedule:
+    method: layer_wise
+    thaw_rate: 2
+    thaw_criterion: plateau_detection
+    min_epochs_per_stage: 5
+data:
+  pretraining_corpus: data/pretrain_corpus.jsonl
+  domain_coverage:
+  - code
+  - natural_language
+  - structured_data
+  - conversational
+  scrambler_ratio: 0.5
+  seed_rotation: true
+  adversarial_scrambling: false
+metrics:
+  surface_metrics:
+  - rrs_score
+  - ldc_score
+  - mia_auc
+  - delta_z_sensitivity
+  transfer_metrics:
+  - ood_performance
+  - long_context_performance
+  - few_shot_adaptation
+  quality_metrics:
+  - em_f1
+  - bleu_score
+  - chrf_score
+  - perplexity
+acceptance:
+  phase_0_requirements:
+    max_bleu_loss: 5
+    max_chrf_loss: 5
+    compute_overhead_max: 2.0
+  post_thaw_requirements:
+    rrs_improvement: true
+    ldc_reduction: true
+    net_quality_neutral_or_positive: true
+    ci_positive_on_core_metric: true
+ablations:
+  loss_components:
+  - kl_only
+  - invariance_only
+  - kl_plus_invariance
+  scrambler_types:
+  - bijective_only
+  - syntax_only
+  - semantic_only
+  - full_ladder
+  seed_strategies:
+  - fixed_seeds
+  - rotating_seeds
+  clamp_styles:
+  - hard_clamp
+  - soft_clamp
+  - no_clamp
+  info_nce:
+  - enabled
+  - disabled
+risk_mitigation:
+  representation_collapse:
+    vicreg_variance_term: true
+    ce_trickle_loss: 0.1
+    variance_threshold: 0.01
+  cipher_inversion:
+    seed_rotation: true
+    semantic_views: true
+    adversarial_head: true
+    inversion_detection: true
+resources:
+  gpu_memory: 24GB
+  training_gpus: 1x24GB
+  pretraining_time: 7 days
+  estimated_total_time: 14 days
+timeline:
+  d0_7: Scrambler API, joint loss, clamp
+  d8_21: Phase-0 runs, RRS/LDC plateaus
+  d22_45: Thaw sweeps, compare to LM-only
+  d46_60: Integrate with BEM code-stability & router plan-alignment
+statistical:
+  bootstrap_samples: 10000
+  paired_test: true
+  fdr_correction: true
+  random_seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  domain_stratified_analysis: true
+bem_integration:
+  code_stability_testing: true
+  router_plan_alignment: true
+  cache_compatibility: true
+  performance_benchmarking: true
+advanced:
+  scrambler_curriculum:
+    stage_1: bijective
+    stage_2: syntax
+    stage_3: semantic
+    stage_4: adversarial
+  invariance_methods:
+  - contrastive_learning
+  - adversarial_training
+  - information_bottleneck
+  robustness_suite:
+  - surface_form_attacks
+  - paraphrase_attacks
+  - adversarial_examples
+  - ood_generalization

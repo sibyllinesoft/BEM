@@ -1,0 +1,238 @@
+# BEM Phase 3: Retrieval-Aware Dynamic Adapter Configuration
+# Retrieval-aware controller with coverage/consistency features
+
+experiment_id: "bem_p3_retrieval_aware"
+method_type: "bem"
+phase: "P3"
+approach: "retrieval_aware_bem"
+
+# Model Configuration
+model:
+  base_model: "microsoft/DialoGPT-medium"  # Must match baseline
+  quantization: "int8"  # Identical to baselines
+  precision: "bf16"
+  
+# BEM Configuration
+bem:
+  # Controller-Generator Architecture
+  controller:
+    type: "retrieval_aware"
+    hidden_dim: 256
+    num_layers: 2
+    activation: "gelu"
+    dropout: 0.1
+    
+    # Retrieval analysis features
+    features:
+      - "coverage"      # Query-retrieval cosine similarity
+      - "consistency"   # Intra-retrieval agreement  
+      - "uncertainty"   # Controller confidence
+      - "query_length"  # Input length normalization
+      - "domain_signal" # Optional domain classification
+    
+    # Coverage/consistency computation
+    coverage:
+      method: "cosine_similarity"
+      aggregation: "mean_max"  # Both mean and max similarity
+      threshold: 0.7
+      
+    consistency:
+      method: "pairwise_similarity"
+      aggregation: "mean"
+      min_docs: 2
+      
+  # Parameter Generator  
+  generator:
+    type: "mlp"
+    hidden_dims: [512, 256]
+    output_dim: "computed"  # Based on rank * target modules
+    activation: "tanh"
+    layer_norm: true
+    
+    # Generated LoRA parameters - IDENTICAL to baseline rank
+    rank: 16  # r = 16 (same as static LoRA)
+    alpha: 32
+    dropout: 0.1
+    
+    # Target modules - IDENTICAL to baseline
+    target_modules:
+      - "c_attn"     # Q, K, V projections
+      - "c_proj"     # Output projection (W_o) 
+      - "c_fc"       # MLP up projection
+      - "c_proj_mlp" # MLP down projection
+  
+  # Hierarchical Routing (P2 carried forward)
+  routing:
+    type: "hierarchical"
+    levels:
+      - "prefix"    # Sequence-level routing
+      - "chunk"     # N=32 token chunks  
+      - "token"     # Token-level (MLP only)
+    
+    chunk_size: 32
+    chunk_overlap: 4
+    
+    # Cache-safe implementation
+    cache_policy:
+      qkv_level: "chunk"  # Chunk-wise Q/K/V caching
+      mlp_level: "token"  # Token-level MLP routing
+      ema_beta: 0.95      # Exponential moving average
+      
+  # Spectral Governance  
+  governance:
+    spectral_clamp: true
+    spectral_threshold: 2.0  # Cap largest singular value
+    frobenius_norm_limit: 1.0
+    trust_region_projection: false  # Enabled in P4
+    
+# Retrieval Configuration
+retrieval:
+  index_path: "indices/domain.faiss"
+  encoder_model: "sentence-transformers/all-MiniLM-L6-v2"
+  encoder_frozen: true  # Frozen encoder for reproducibility
+  
+  # Retrieval parameters
+  top_k: 5
+  similarity_threshold: 0.5
+  max_doc_length: 512
+  
+  # Coverage/consistency analysis
+  analyze_quality: true
+  log_retrieval_stats: true
+  
+  # Index-swap testing (for policy-over-memory validation)
+  test_indices:
+    - name: "clean"
+      path: "indices/domain_clean.faiss"
+      description: "High-quality, relevant documents"
+    - name: "corrupt" 
+      path: "indices/domain_corrupt.faiss"
+      description: "Relevant but noisy documents"
+    - name: "shuffle"
+      path: "indices/domain_shuffled.faiss" 
+      description: "Randomly shuffled document chunks"
+
+# Training Configuration (identical to baseline)
+training:
+  learning_rate: 2e-4
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  max_steps: 1000
+  save_strategy: "steps"
+  save_steps: 200
+  evaluation_strategy: "steps"
+  eval_steps: 100
+  logging_steps: 50
+  
+  # Optimizer
+  optimizer: "adamw_torch"
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+
+# Dataset Configuration (identical to baseline)
+datasets:
+  train:
+    - name: "domain_qa_train"
+      path: "data/domain_qa/train.jsonl"
+      split: "train"
+      max_samples: 5000
+    - name: "instruction_train"
+      path: "data/instruction/alpaca_subset_train.jsonl"
+      split: "train" 
+      max_samples: 3000
+      
+  validation:
+    - name: "domain_qa_val"
+      path: "data/domain_qa/val.jsonl"
+      split: "validation"
+    - name: "instruction_val"
+      path: "data/instruction/alpaca_subset_val.jsonl"
+      split: "validation"
+      
+  test:
+    - name: "nq_open_small"
+      path: "data/nq_open/test_small.jsonl" 
+      split: "test"
+    - name: "mt_bench_subset"
+      path: "data/mt_bench/subset.jsonl"
+      split: "test"
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "exact_match"
+    - "f1_score" 
+    - "bleu"
+    - "chrF"
+    - "json_validity"
+    
+  # BEM-specific metrics
+  bem_metrics:
+    - "gate_entropy"
+    - "gate_utilization"
+    - "routing_accuracy"
+    - "controller_confidence"
+    - "coverage_score"
+    - "consistency_score"
+    
+  # Performance metrics  
+  track_latency: true
+  track_memory: true
+  profile_tokens_per_second: true
+  cache_hit_rate: true
+  
+# Index-Swap Experiments (Policy over Memory)
+index_swap:
+  enabled: true
+  test_sets: ["clean", "corrupt", "shuffle"]
+  
+  # Expected monotonic ordering
+  expected_order: ["clean", "corrupt", "shuffle"]  # Performance should decrease
+  
+  # Statistical validation
+  monotonicity_test: "spearman"
+  significance_level: 0.05
+  
+# Logging Configuration
+logging:
+  log_dir: "logs/p3"
+  wandb_project: "bem_phases"
+  wandb_name: "p3_retrieval_aware_r16"
+  save_predictions: true
+  save_model: true
+  save_routing_decisions: true
+  save_retrieval_analysis: true
+  
+# Reproducibility
+seed: 42  # Will be overridden by script
+deterministic: true
+cuda_deterministic: true
+
+# Hardware Configuration  
+hardware:
+  device: "cuda"
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  dataloader_num_workers: 4
+  
+# Systems Optimization
+systems:
+  fused_kernels: true
+  kernel_path: "fused"  # Use fused implementation
+  precompile_kernels: true
+  
+# Validation Requirements
+validation:
+  min_eval_samples: 100
+  max_eval_samples: 1000
+  eval_batch_size: 16
+  
+  # BEM-specific validation
+  require_routing_diversity: true
+  min_gate_entropy: 1.0
+  max_unused_experts: 0.2  # 20% of experts can be unused

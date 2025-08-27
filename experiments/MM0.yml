@@ -1,0 +1,194 @@
+base_config: performance_variant.yaml
+name: MM0_multimodal_conditioning
+version: 2.0.0
+description: Multimodal BEM with vision conditioning, coverage/consistency gating,
+  and VQA evaluation
+model:
+  type: multimodal_bem
+  base_model: microsoft/DialoGPT-small
+  controller:
+    input_dim: 768
+    code_dim: 8
+    hidden_dim: 3072
+    chunk_size: 32
+    max_prefix_tokens: 128
+    ema_decay: 0.99
+    enable_uncertainty: true
+    enable_token_routing: true
+    code_clamp_value: 3.0
+  vision:
+    encoder_path: models/vision
+    vision_dim: 512
+    num_regions: 8
+    patch_grid_size:
+    - 14
+    - 14
+    projection_mode: adaptive
+    enable_coverage_analysis: true
+  multimodal:
+    consistency_threshold: 0.5
+    coverage_threshold: 0.3
+    enable_conflict_gating: true
+    gate_smoothing: 0.9
+training:
+  learning_rate: 0.0001
+  weight_decay: 1.0e-05
+  warmup_steps: 1000
+  max_steps: 50000
+  gradient_clip_norm: 1.0
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  evaluation_steps: 1000
+  save_steps: 5000
+  loss_weights:
+    primary: 1.0
+    coverage: 0.1
+    consistency: 0.1
+    conflict: 0.05
+    hallucination: 0.1
+  vision_dropout: 0.1
+  enable_conflict_supervision: true
+  validate_cache_safety: true
+  generator_gradient_check: true
+data:
+  train_data: data/vqa/train.jsonl
+  eval_data: data/vqa/val.jsonl
+  vision_features: data/vqa/vis_feats.parquet
+  image_dir: data/vqa/images
+  max_text_length: 512
+  max_answer_length: 32
+  enable_vision_augmentation: false
+  augmentation_prob: 0.1
+evaluation:
+  vqa_metrics:
+  - exact_match
+  - f1_score
+  - accuracy
+  - answer_relevance
+  hallucination_detection:
+    object_vocab_size: 80
+    enable_spatial_analysis: true
+    enable_attribute_analysis: true
+  coverage_analysis:
+    min_coverage_threshold: 0.3
+    target_coverage: 0.7
+    spatial_entropy_threshold: 0.5
+  consistency_analysis:
+    min_consistency_threshold: 0.5
+    target_consistency: 0.8
+    cross_modal_weight: 2.0
+  latency_profiling:
+    enable: true
+    profile_batch_sizes:
+    - 1
+    - 4
+    - 8
+    num_profile_samples: 100
+cache:
+  vision_cache:
+    cache_dir: cache/vision_features
+    max_memory_items: 1000
+    max_disk_items: 10000
+    cache_ttl_hours: 24
+  chunk_processing:
+    enable: true
+    chunk_size: 32
+    summary_method: attention_weighted
+    align_with_patches: true
+hardware:
+  device: auto
+  mixed_precision: true
+  compile_model: false
+  gradient_checkpointing: false
+  cpu_offload: false
+  dataloader_num_workers: 4
+  pin_memory: true
+logging:
+  use_wandb: false
+  wandb_project: bem2-multimodal
+  wandb_entity: null
+  log_level: INFO
+  log_interval: 100
+  track_metrics:
+  - vqa_exact_match
+  - vqa_f1_score
+  - coverage_score
+  - consistency_score
+  - gate_activation_rate
+  - hallucination_rate
+  - preprocessing_latency_ms
+  - inference_latency_ms
+  - cache_hit_rate
+output:
+  output_dir: outputs/MM0_multimodal
+  save_best_only: false
+  save_total_limit: 5
+  save_predictions: true
+  save_attention_maps: false
+  save_coverage_analysis: true
+  save_consistency_analysis: true
+  seed: 42
+  deterministic: false
+acceptance_gates:
+  vqa_improvement:
+    target_em_gain: 0.02
+    target_f1_gain: 0.02
+    slice_name: VQA-Full
+  hallucination_reduction:
+    target_reduction: 0.1
+    metrics:
+    - object
+    - spatial
+    - overall
+  latency_constraint:
+    max_p50_increase: 0.15
+    baseline_p50_ms: 100
+  coverage_quality:
+    min_coverage_score: 0.4
+    min_spatial_entropy: 0.3
+  consistency_quality:
+    min_consistency_score: 0.5
+    min_cross_modal_alignment: 0.4
+  cache_safety:
+    max_generator_gradient_norm: 1e-6
+    validate_every_n_steps: 100
+  budget_parity:
+    max_param_increase: 0.05
+    max_flop_increase: 0.05
+    baseline_model: v13_anchor
+variants:
+  no_conflict_gating:
+    multimodal.enable_conflict_gating: false
+    training.loss_weights.conflict: 0.0
+  no_coverage_loss:
+    training.loss_weights.coverage: 0.0
+  simple_projection:
+    vision.projection_mode: linear
+  text_only:
+    multimodal.enable_vision_conditioning: false
+  small_vision:
+    vision.vision_dim: 256
+    vision.num_regions: 4
+experiment:
+  tags:
+  - multimodal
+  - vision
+  - vqa
+  - cache-safe
+  - bem2
+  notes: "BEM 2.0 Multimodal Conditioning (MM0) experiment implementing:\n- Vision\
+    \ features fed only to controller (cache-safe)\n- CLS/pool embeddings + region\
+    \ summaries\n- Coverage/consistency gating for hallucination reduction\n- Chunk\
+    \ routing aligned with patch windows\n- VQA evaluation with +\u22652% EM/F1 target\n\
+    - \u2264+15% p50 latency constraint\n"
+  hypothesis: "Adding vision conditioning to the BEM controller while maintaining\
+    \ \ncache-safety will improve VQA performance by \u22652% EM/F1 while reducing\n\
+    hallucinations and staying within latency constraints.\n"
+  success_criteria:
+  - "VQA EM improvement \u22652% on validation set"
+  - "VQA F1 improvement \u22652% on validation set"
+  - "Hallucination rate reduction \u226510%"
+  - "P50 latency increase \u226415%"
+  - Cache safety maintained (no generator gradients)
+  - "Coverage score \u22650.4 on average"
+  - "Consistency score \u22650.5 on average"

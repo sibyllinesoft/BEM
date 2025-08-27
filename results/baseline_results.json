@@ -1,0 +1,77 @@
+{
+  "seed_1": {
+    "metrics": {
+      "EM": 0.6856247728646413,
+      "F1": 0.7753585255834046,
+      "BLEU": 0.5757466010397588,
+      "chrF": 0.6241138012775799
+    },
+    "performance": {
+      "p50_latency_ms": 184.87515493436518,
+      "p95_latency_ms": 266.2748803428499,
+      "throughput_tokens_per_sec": 898.1997469604917,
+      "vram_usage_gb": 4.080282631831362
+    },
+    "cache_metrics": null
+  },
+  "seed_2": {
+    "metrics": {
+      "EM": 0.7108490807514289,
+      "F1": 0.7638720061348719,
+      "BLEU": 0.6344558242203365,
+      "chrF": 0.7061410969939791
+    },
+    "performance": {
+      "p50_latency_ms": 179.7850437653403,
+      "p95_latency_ms": 268.77572386976806,
+      "throughput_tokens_per_sec": 834.5063723977564,
+      "vram_usage_gb": 4.065752200350018
+    },
+    "cache_metrics": null
+  },
+  "seed_3": {
+    "metrics": {
+      "EM": 0.7026114120471451,
+      "F1": 0.7725248162383533,
+      "BLEU": 0.6236704310614201,
+      "chrF": 0.6003729325619732
+    },
+    "performance": {
+      "p50_latency_ms": 178.68196867297493,
+      "p95_latency_ms": 254.28535085814096,
+      "throughput_tokens_per_sec": 936.9473511185379,
+      "vram_usage_gb": 3.958538382538108
+    },
+    "cache_metrics": null
+  },
+  "seed_4": {
+    "metrics": {
+      "EM": 0.6757451919132044,
+      "F1": 0.7674560739103866,
+      "BLEU": 0.656616084708083,
+      "chrF": 0.6698625332897906
+    },
+    "performance": {
+      "p50_latency_ms": 176.82143877739776,
+      "p95_latency_ms": 256.15920919736027,
+      "throughput_tokens_per_sec": 902.426938733701,
+      "vram_usage_gb": 4.077491599242631
+    },
+    "cache_metrics": null
+  },
+  "seed_5": {
+    "metrics": {
+      "EM": 0.6789384071836794,
+      "F1": 0.7718084463350559,
+      "BLEU": 0.6043156738747137,
+      "chrF": 0.6160945515560364
+    },
+    "performance": {
+      "p50_latency_ms": 181.77672166238744,
+      "p95_latency_ms": 253.13266326615866,
+      "throughput_tokens_per_sec": 900.1278364160615,
+      "vram_usage_gb": 3.9812330293299882
+    },
+    "cache_metrics": null
+  }
+}

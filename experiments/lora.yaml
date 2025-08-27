@@ -1,0 +1,119 @@
+# Static LoRA Baseline Configuration
+# CRITICAL: Must use identical rank and attach points as BEM for fair comparison
+
+experiment_id: "static_lora_baseline"
+method_type: "baseline"
+approach: "static_lora"
+
+# Model Configuration
+model:
+  base_model: "microsoft/DialoGPT-medium"  # Replace with actual model
+  quantization: "int8"  # Must match BEM experiments
+  precision: "bf16"
+  
+# LoRA Configuration - MUST MATCH BEM
+lora:
+  rank: 16  # r = 16 (identical to BEM)
+  alpha: 32  # scaling factor
+  dropout: 0.1
+  
+  # Attach points - MUST BE IDENTICAL to BEM
+  target_modules:
+    - "c_attn"     # Q, K, V projections  
+    - "c_proj"     # Output projection (W_o)
+    - "c_fc"       # MLP up projection
+    - "c_proj_mlp" # MLP down projection
+  
+  # Static parameters - no dynamic routing
+  routing: "none"
+  dynamic_generation: false
+
+# Training Configuration
+training:
+  learning_rate: 2e-4
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+  max_steps: 1000
+  save_strategy: "steps"
+  save_steps: 200
+  evaluation_strategy: "steps"
+  eval_steps: 100
+  logging_steps: 50
+  
+  # Optimizer
+  optimizer: "adamw_torch"
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+
+# Dataset Configuration
+datasets:
+  train:
+    - name: "domain_qa_train"
+      path: "data/domain_qa/train.jsonl"
+      split: "train"
+      max_samples: 5000
+    - name: "instruction_train"  
+      path: "data/instruction/alpaca_subset_train.jsonl"
+      split: "train"
+      max_samples: 3000
+      
+  validation:
+    - name: "domain_qa_val"
+      path: "data/domain_qa/val.jsonl"
+      split: "validation"
+    - name: "instruction_val"
+      path: "data/instruction/alpaca_subset_val.jsonl" 
+      split: "validation"
+      
+  test:
+    - name: "nq_open_small"
+      path: "data/nq_open/test_small.jsonl"
+      split: "test"
+    - name: "mt_bench_subset"
+      path: "data/mt_bench/subset.jsonl"
+      split: "test"
+
+# Evaluation Configuration
+evaluation:
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu"
+    - "chrF"
+    - "json_validity"
+    
+  # Performance metrics
+  track_latency: true
+  track_memory: true
+  profile_tokens_per_second: true
+  
+# Logging Configuration  
+logging:
+  log_dir: "logs/lora"
+  wandb_project: "bem_baselines"
+  wandb_name: "static_lora_r16"
+  save_predictions: true
+  save_model: true
+  
+# Reproducibility
+seed: 42  # Will be overridden by script with multiple seeds
+deterministic: true
+cuda_deterministic: true
+
+# Hardware Configuration
+hardware:
+  device: "cuda"
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  dataloader_num_workers: 4
+  
+# Validation Requirements
+validation:
+  min_eval_samples: 100
+  max_eval_samples: 1000
+  eval_batch_size: 16

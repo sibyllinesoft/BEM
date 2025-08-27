@@ -1,0 +1,263 @@
+# Repomixignore for BEM Research Repository  
+# Target: Keep under 100k tokens while preserving essential code and documentation
+# Focus: Core implementation, key docs, experiment configs, tests
+
+# === EXCLUDE: MASSIVE MODEL FILES (HIGHEST PRIORITY) ===
+# These are the biggest space consumers
+models/**
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.model
+*.joblib
+**/model_cache/**
+**/tokenizer_cache/**
+**/blobs/**
+**/snapshots/**
+
+# === EXCLUDE: HEAVY EXPERIMENT LOGS ===
+# Thousands of checkpoint JSONs - massive token drain
+logs/**
+**/checkpoint_step_*.json
+**/eval_results.json
+**/results.json
+**/manifest.json
+
+# === EXCLUDE: LARGE PAPER/ARCHIVE ARTIFACTS ===
+# Generated LaTeX, PDFs, and historical documents
+archive/**
+**/paper/**
+*.pdf
+*.aux
+*.log
+*.out
+
+# === EXCLUDE: Large datasets and data files ===
+data/**
+datasets/**
+raw_data/**
+corpora/**
+indices/**
+**/faiss
+*.csv
+*.parquet
+*.feather
+*.arrow
+*.csv.gz
+*.json.gz
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.jsonl
+
+# === EXCLUDE: Analysis and results outputs ===
+results/outputs/**
+results/analysis/**
+**/analysis/**
+**/figures/**
+**/checkpoints/**
+
+# === EXCLUDE: Python compiled/cached files ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# === EXCLUDE: Virtual environments and dependencies ===
+venv/
+.venv/
+env/
+ENV/
+.env
+node_modules/
+
+# === EXCLUDE: IDE and editor files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# === EXCLUDE: Generated documentation ===
+docs/_build/
+docs/build/
+site/
+
+# === EXCLUDE: Logs and temporary files ===
+*.log
+logs/**
+wandb/
+runs/
+tb_logs/
+mlruns/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# === EXCLUDE: Large binary and media files ===
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.eps
+*.svg
+*.zip
+*.tar.gz
+*.7z
+
+# === EXCLUDE: OS and backup files ===
+*~
+*.bak
+*.backup
+.Trashes
+
+# === EXCLUDE: Jupyter notebook outputs (but include notebooks themselves) ===
+# Note: This pattern excludes cells with outputs but includes notebooks
+# Individual notebooks may need manual cleaning
+
+# === EXCLUDE: Configuration with secrets ===
+config/secrets.*
+config/api_keys.*
+.secrets
+.api_keys
+*.key
+*.pem
+
+# === EXCLUDE: Compiled distributions ===
+build/
+dist/
+*.egg-info/
+
+# === EXCLUDE: Large text files and documentation ===
+# Exclude very large documentation files that aren't essential
+*_large.md
+*_complete.md
+*_full.md
+*REPORT*.md
+*SUMMARY*.md
+*IMPLEMENTATION*.md
+*STATUS*.md
+*VALIDATION*.md
+*ANALYSIS*.md
+paper/**
+
+# === EXCLUDE: Development artifacts ===
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*~
+*.bak
+*.backup
+.Trashes
+
+# === EXCLUDE: Build artifacts ===
+build/
+dist/
+*.egg-info/
+**/deployment/dist/**
+
+# === EXCLUDE: Environment files ===
+venv/
+.venv/
+env/
+ENV/
+.env
+node_modules/
+
+# === EXCLUDE: IDE files ===
+.vscode/
+.idea/
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# === EXCLUDE: Logs and monitoring ===
+wandb/
+runs/
+tb_logs/
+mlruns/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# === EXCLUDE: Binary and media files ===
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.eps
+*.svg
+*.zip
+*.tar.gz
+*.7z
+
+# === EXCLUDE: Secrets ===
+*.key
+*.pem
+.secrets
+.api_keys
+
+# === EXCLUDE: Large test files and heavy validation scripts ===
+# These are consuming way too many tokens
+tests/**
+scripts/**
+docs/**
+
+# === EXCLUDE: Heavy safety modules (largest files) ===
+src/bem2/safety/*secure.py
+src/bem2/safety/evaluation.py
+src/bem2/safety/training.py
+
+# === EXCLUDE: Heavy evaluation and multimodal modules ===
+src/bem2/multimodal/evaluation.py
+src/bem2/multimodal/training.py
+src/bem2/multimodal/coverage_analysis.py
+src/bem2/perftrack/evaluation.py
+src/bem2/online/online_learner.py
+
+# === EXCLUDE: Heavy legacy modules ===
+; src/bem_legacy/vector_quantization.py
+; src/bem_legacy/controller.py
+; src/bem_legacy/counterfactual.py
+
+# === EXCLUDE: Results and analysis ===
+results/**
+
+# === EXCLUDE: Most remaining src files - keep only essentials ===
+; src/bem2/**
+; src/bem_legacy/**
+
+# === EXCLUDE: All experiments except most basic ===
+experiments/**
+
+# === EXCLUDE: Deployment and workflow files ===
+deployment/**
+; .github/**
+
+# === STRATEGIC INCLUDES (absolute minimal core) ===
+# Only the core BEM files
+!src/bem_legacy/simple_bem.py
+!src/bem_legacy/__init__.py
+
+# Only one basic router file
+!src/bem2/router/agentic_router.py
+!src/bem2/__init__.py
+
+# Only essential docs
+!README.md
+
+# Only the simplest experiment config
+!experiments/S0_baseline.yml
+
+# Package metadata only
+!requirements.txt

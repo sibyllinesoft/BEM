@@ -1,0 +1,171 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: bem_v11_baseline
+  description: BEM-v1.1-stable with cache-safe W_O + W_down sites, chunk-sticky routing,
+    attention bias
+  version: 1.1.0
+  created: '2024-08-23'
+model:
+  base_model: llama2-7b
+  architecture: bem_v11_stable
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    num_experts: 2
+    alpha: 16.0
+    dropout: 0.1
+    routing:
+      chunk_size: 128
+      hysteresis_tau: 0.7
+      routing_type: chunk_sticky
+    attention_bias:
+      enabled: true
+      retrieval_dim: 768
+      bias_hidden_dim: 64
+    governance:
+      max_singular_value: 1.0
+      fro_budget: 1.0
+      trust_region: true
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 1e-4
+  batch_size: 16
+  max_steps: 5000
+  warmup_steps: 500
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 1000
+  eval_steps: 500
+  lora_alpha: 16
+  lora_dropout: 0.1
+data:
+  train_file: data/train.jsonl
+  eval_file: data/eval.jsonl
+  max_seq_length: 2048
+  retrieval:
+    index_file: indices/retrieval.faiss
+    num_retrieved: 10
+    retrieval_model: sentence-transformers/all-mpnet-base-v2
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - cache_hit_rate_pct
+  cache_monitoring:
+    enabled: true
+    track_kv_hits: true
+    track_routing_flips: true
+    track_gate_entropy: true
+    export_routing_decisions: true
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+quality_gates:
+  baseline_threshold:
+    enabled: true
+    metrics:
+    - EM
+    - F1
+    - BLEU
+    - chrF
+  latency_budget:
+    enabled: true
+    max_increase_pct: 15.0
+    metric: p50_latency_ms
+  cache_performance:
+    enabled: true
+    min_hit_rate_pct: 80.0
+  vram_budget:
+    enabled: true
+    max_delta_pct: 5.0
+logging:
+  log_level: INFO
+  wandb_project: bem_v11_research
+  wandb_tags:
+  - bem_v11
+  - baseline
+  - cache_safe
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - cache_metrics
+  - routing_metrics
+  - governance_metrics
+  export_formats:
+  - jsonl
+  - csv
+  export_routing_data: true
+  export_cache_events: true
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  - q_proj
+  - k_proj
+  - v_proj
+  validate_rank_schedule: true
+  validate_attachment_points: true
+  validate_param_budget: true
+  max_param_increase_pct: 5.0
+analysis:
+  stats_config:
+    n_bootstrap: 10000
+    alpha: 0.05
+    fdr_method: fdr_bh
+  cache_analysis:
+    enabled: true
+    export_detailed_metrics: true
+  leak_detection:
+    enabled: true
+    similarity_threshold: 0.7
+  pareto_analysis:
+    enabled: true
+    primary_metric: F1
+    latency_metric: p50_latency_ms
+reproducibility:
+  code_version: bem_v1.1.0
+  config_hash: null
+  python_version: null
+  torch_version: null
+  cuda_version: null
+  data_hash: null
+  index_hash: null

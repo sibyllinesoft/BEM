@@ -1,0 +1,99 @@
+base_config: performance_variant.yaml
+name: mission_a_agentic_planner
+version: '1.0'
+model:
+  base_model: bem_v13_anchor
+  router_type: hierarchical
+  horizon: 3
+  use_hysteresis: true
+  kl_bound: 0.01
+  action_space:
+  - retrieve
+  - reason
+  - formalize
+  - plan
+  - tool_call
+  - summarize
+training:
+  method: behavioral_cloning
+  batch_size: 32
+  learning_rate: 5e-5
+  num_epochs: 50
+  gradient_accumulation_steps: 4
+  warmup_steps: 1000
+  weight_decay: 0.01
+  pg_phase:
+    method: trust_region_pg
+    policy_lr: 1e-5
+    value_lr: 5e-5
+    ppo_clip: 0.2
+    entropy_coeff: 0.01
+    gae_lambda: 0.95
+data:
+  train_data: data/comp_tasks.jsonl
+  trace_data: data/router_traces.jsonl
+  eval_data: data/comp_eval.jsonl
+  compositional_tasks:
+  - code_to_legal_brief
+  - plan_tool_summarize
+  - retrieve_reason_formalize
+metrics:
+  primary:
+  - em_f1
+  - format_validity
+  - tool_success_rate
+  secondary:
+  - plan_length
+  - flip_rate
+  - kv_hit_percent
+  - latency_p50
+  - latency_p95
+  - delta_w_norm
+  - index_swap_monotonicity
+acceptance:
+  primary_metric_improvement: 1.5
+  confidence_interval: 0.95
+  latency_overhead_max: 15
+  plan_length_max: 3
+  kv_hit_min_ratio: 1.0
+ablations:
+  horizons:
+  - 1
+  - 2
+  - 3
+  disable_hysteresis: false
+  disable_trpo: false
+  action_sets:
+  - rank_budget_on
+  - rank_budget_off
+  weight_updates:
+  - w_o_only
+  - w_o_plus_w_down
+risk_mitigation:
+  thrash_prevention:
+    hysteresis_weight: 0.1
+    step_penalty: 0.05
+  overfitting_prevention:
+    data_shuffle_audit: true
+    cross_validation_folds: 5
+resources:
+  gpu_memory: 24GB
+  training_gpus: 2x80GB or 1xH100
+  eval_gpus: 1x24GB
+  estimated_time: 14 days
+timeline:
+  d0_7: BC traces + AR0 behavior clone, sanity eval
+  d8_21: AR1 PG/trust-region, index-swap, latency profiling
+  d22_45: Compositional benchmark runs (5 seeds), ablations
+  d46_60: Paper-ready figures, repro pack, promotion decision
+statistical:
+  bootstrap_samples: 10000
+  paired_test: true
+  fdr_correction: true
+  random_seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  significance_level: 0.05

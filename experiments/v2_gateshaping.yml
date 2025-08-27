@@ -1,0 +1,222 @@
+# PT1 + Gate-Shaping v2 - V2 Experiment Configuration  
+# Expected: +0.5–1.5% EM/F1, no per-token cost, pre-gen only
+
+name: "v2_pt1_gate_shaping_v2"
+version: "1.0"
+description: "PT1 Head-Group Gating + Gate-Shaping v2 with retrieval→control signals"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "performance_variant"
+variant_id: "V2"
+
+# Model architecture
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder - replace with actual base
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# PT1 Head-Group Gating Configuration (same as V1)
+head_gating:
+  enabled: true
+  num_groups: 4
+  heads_per_group: 3
+  rank_per_group: 2
+  gate_temperature: 1.0
+  gate_dropout: 0.1
+  decorrelation_strength: 0.1
+  use_attention_stats: true
+  attention_stat_dim: 16
+  use_retrieval_quality: true
+  retrieval_quality_dim: 8
+  max_singular_value: 1.0
+  fro_budget: 0.8
+
+# Gate-Shaping v2 Configuration
+gate_shaping_v2:
+  enabled: true
+  pre_gen_only: true  # Only active during pre-generation phase
+  
+  # Cross-encoder re-ranking
+  cross_encoder:
+    model_name: "cross-encoder/ms-marco-TinyBERT-L-2"  # Tiny cross-encoder
+    max_length: 128
+    batch_size: 8
+    cache_embeddings: true
+    
+  # Retrieval signal features
+  retrieval_signals:
+    use_s1_score: true      # Semantic similarity score
+    use_margin: true        # Score margin between top candidates
+    use_entropy: true       # Score distribution entropy  
+    use_contradiction: true # Contradiction detection score
+    
+  # Gate magnitude alignment
+  gate_alignment:
+    use_mse_loss: true        # MSE align gate magnitude with margin
+    mse_weight: 0.1           # Weight for MSE alignment loss
+    margin_scale: 2.0         # Scaling factor for margin influence
+    temperature_calibration: true  # Per-head bias temperature calibration
+    
+  # Per-head bias temperature
+  temperature_calibration:
+    enabled: true
+    init_temperature: 1.0
+    learnable_temperature: true
+    temperature_range: [0.5, 2.0]  # Clamp range
+    per_head_bias: true
+    
+  # Budget allocation (+3-6ms pre-gen acceptable)
+  timing_budget:
+    max_pregen_overhead_ms: 6.0
+    timeout_threshold_ms: 10.0
+    enable_timeout_fallback: true
+
+# Training configuration
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+  
+  # Gate-shaping specific regularization
+  gate_shaping_loss_weight: 0.1
+  temperature_reg_weight: 0.01
+  contradiction_loss_weight: 0.05
+
+# Data configuration
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  
+  # Retrieval-augmented data requirements
+  retrieval_context_file: "data/retrieval_contexts.jsonl"
+  retrieval_index: "indices/domain.faiss"
+  max_retrieved_docs: 5
+  min_retrieval_score: 0.3
+  
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    include_retrieval_features: true
+
+# Budget constraints (pre-gen overhead acceptable)
+budget_constraints:
+  parameter_tolerance: 0.05      # ±5%
+  flop_tolerance: 0.05          # ±5% (per-token cost unchanged)
+  pregen_timing_tolerance: 0.1   # +10% pre-gen timing acceptable
+  memory_tolerance: 0.10        # ±10%
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # Performance gates specific to gate-shaping
+  performance_gates:
+    slice_b_ci_threshold: 0.0     # CI > 0 required
+    em_f1_improvement: 0.005      # +0.5% minimum
+    per_token_cost_increase: 0.0  # No per-token cost increase
+    pregen_timing_threshold: 6.0  # +6ms pre-gen maximum
+  
+  # Metrics to track
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu" 
+    - "chrf"
+    - "pregen_latency_ms"
+    - "per_token_latency_ms"
+    - "retrieval_quality_score"
+    - "gate_magnitude_alignment"
+    - "temperature_calibration_score"
+
+# Retrieval evaluation
+retrieval_evaluation:
+  enabled: true
+  metrics:
+    - "retrieval_precision_at_k"
+    - "retrieval_recall_at_k"
+    - "margin_quality"
+    - "contradiction_detection_accuracy"
+    - "cross_encoder_correlation"
+  k_values: [1, 3, 5]
+
+# Telemetry and monitoring  
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "gate_shaping_loss"
+    - "cross_encoder_scores"
+    - "retrieval_margins"
+    - "temperature_values"
+    - "gate_magnitude_mse"
+    - "contradiction_scores"
+    - "pregen_timing"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_performance"
+    tags: ["v2", "pt1", "gate_shaping", "retrieval"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  
+# Output configuration
+output:
+  output_dir: "logs/V2"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "f1_score"
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 20  # Slightly higher for retrieval processing
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# Cross-encoder caching
+caching:
+  cache_cross_encoder_embeddings: true
+  cache_retrieval_results: true
+  cache_directory: "cache/v2_gate_shaping"
+  max_cache_size_gb: 5.0
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/V2/training.log"
+  log_gate_shaping_metrics: true
+  log_retrieval_statistics: true
+  log_temperature_evolution: true
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.001
+  cross_encoder_timeout_ms: 100  # Timeout for cross-encoder inference

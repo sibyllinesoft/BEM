@@ -1,0 +1,83 @@
+base_config: performance_variant.yaml
+name: PT4_residual_film
+description: PT4 Residual FiLM with micro-modulation and minimal parameter overhead
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_pt4_residual_film
+pt4_config:
+  gamma_dim: 16
+  beta_dim: 16
+  controller_dim: 32
+  micro_scale: 0.01
+  clamp_range: 0.1
+  residual_scale: 0.1
+  controller_layers: 2
+  controller_activation: gelu
+  controller_dropout: 0.05
+  use_channel_wise: true
+  use_spatial_wise: false
+  normalize_features: true
+  max_gamma: 1.2
+  min_gamma: 0.8
+  max_beta: 0.1
+  minimal_overhead: true
+budget:
+  baseline_params: 124964096
+  baseline_flops: 1000000
+  baseline_memory_mb: 512.0
+  tolerance: 0.05
+  enforce_during_training: true
+  minimal_overhead: true
+training:
+  learning_rate: 5e-4
+  batch_size: 32
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 1e-4
+  variant_lr_multiplier: 0.1
+  stability_monitoring: true
+  emergency_reset_threshold: 10.0
+  controller_lr_multiplier: 0.05
+  modulation_lr_multiplier: 0.02
+  residual_scale_lr_multiplier: 0.01
+  gradient_clip_norm: 0.5
+  spectral_penalty_weight: 0.05
+  budget_penalty_weight: 1.0
+  stability_penalty_weight: 0.1
+  eval_steps: 50
+  save_steps: 250
+  logging_steps: 25
+  early_stopping_patience: 10
+  stability_check_steps: 10
+evaluation:
+  metrics:
+  - exact_match
+  - f1
+  - bleu
+  - rouge
+  - chrf
+  test_split: test
+  expected_improvement:
+    primary_metric: validity_score
+    min_improvement_pct: 0.0
+  stability_validation:
+    max_parameter_drift: 0.01
+    max_output_variance_change: 0.1
+    nan_inf_tolerance: 0
+metadata:
+  variant_type: PT4
+  attachment_sites:
+  - all_blocks
+  performance_target: Validity improvements with no regressions
+  budget_constraint: "\xB15% params/FLOPs vs v1.3-stack anchor"
+  promotion_criteria: Pareto frontier shift OR CI-backed Slice-B gains
+  special_features:
+  - micro_modulation
+  - strict_clamps
+  - minimal_overhead
+  - stability_first
+safety:
+  enable_emergency_stabilization: true
+  parameter_safety_checks: true
+  output_validity_monitoring: true
+  automatic_fallback: true

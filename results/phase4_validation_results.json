@@ -1,0 +1,50 @@
+{
+  "subspace": {
+    "passed": 3,
+    "failed": 0,
+    "details": [
+      "\u2705 SubspacePlanner: allocation and capacity management",
+      "\u2705 OrthogonalityEnforcer: validation (max_overlap=58.927399)",
+      "\u2705 CapacityManager: utilization and performance tracking"
+    ]
+  },
+  "trust_region": {
+    "passed": 2,
+    "failed": 0,
+    "details": [
+      "\u2705 NormCalculator: frobenius=90.4066, spectral=19.3928",
+      "\u2705 TrustRegionProjector: 3 violations detected and corrected"
+    ]
+  },
+  "composition": {
+    "passed": 1,
+    "failed": 1,
+    "details": [
+      "\u2705 MultiBEMComposer: initialization",
+      "\u274c MultiBEMComposer BEM registration: create_bem_from_linear() missing 1 required positional argument: 'controller_input_dim'"
+    ]
+  },
+  "interference": {
+    "passed": 1,
+    "failed": 1,
+    "details": [
+      "\u2705 CanaryTasks: created 5 standard tasks",
+      "\u274c InterferenceTester creation: create_bem_from_linear() missing 1 required positional argument: 'controller_input_dim'"
+    ]
+  },
+  "training": {
+    "passed": 1,
+    "failed": 1,
+    "details": [
+      "\u2705 CompositionTrainingConfig: configuration creation",
+      "\u274c CompositionTrainer setup: create_bem_from_linear() missing 1 required positional argument: 'controller_input_dim'"
+    ]
+  },
+  "integration": {
+    "passed": 0,
+    "failed": 1,
+    "details": [
+      "\u274c Integration test failed: create_bem_from_linear() missing 1 required positional argument: 'controller_input_dim'"
+    ]
+  }
+}

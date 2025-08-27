@@ -1,0 +1,61 @@
+base_config: performance_variant.yaml
+name: PT1_head_gating
+description: PT1 Head-Group Gating with per-group gates from attention stats and retrieval
+  quality
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_pt1_head_gating
+pt1_config:
+  num_groups: 4
+  heads_per_group: 2
+  rank_per_group: 2
+  gate_temperature: 1.0
+  gate_dropout: 0.1
+  decorrelation_strength: 0.1
+  use_attention_stats: true
+  attention_stat_dim: 16
+  use_retrieval_quality: true
+  retrieval_quality_dim: 8
+  max_singular_value: 1.0
+  fro_budget: 0.8
+budget:
+  baseline_params: 124964096
+  baseline_flops: 1000000
+  baseline_memory_mb: 512.0
+  tolerance: 0.05
+  enforce_during_training: true
+training:
+  learning_rate: 5e-4
+  batch_size: 32
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 1e-4
+  variant_lr_multiplier: 1.0
+  decorrelation_annealing: true
+  gate_entropy_weight: 0.01
+  gradient_clip_norm: 1.0
+  spectral_penalty_weight: 0.1
+  budget_penalty_weight: 1.0
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  early_stopping_patience: 5
+evaluation:
+  metrics:
+  - exact_match
+  - f1
+  - bleu
+  - rouge
+  - chrf
+  test_split: test
+  expected_improvement:
+    primary_metric: f1_score
+    min_improvement_pct: 0.5
+    max_improvement_pct: 1.5
+metadata:
+  variant_type: PT1
+  attachment_sites:
+  - W_O
+  performance_target: "+0.5\u20131.5% improvement"
+  budget_constraint: "\xB15% params/FLOPs vs v1.3-stack anchor"
+  promotion_criteria: Pareto frontier shift OR CI-backed Slice-B gains

@@ -1,0 +1,383 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bem"
+version = "2.0.0"
+description = "Block-wise Expert Modules: Adaptive Neural Architecture for Generalist AI"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Nathan Rice", email = "nathan@example.com"},
+    {name = "BEM Research Team"}
+]
+maintainers = [
+    {name = "Nathan Rice", email = "nathan@example.com"}
+]
+keywords = [
+    "machine-learning",
+    "deep-learning", 
+    "neural-networks",
+    "expert-systems",
+    "adaptive-ai",
+    "routing",
+    "transformers",
+    "pytorch"
+]
+classifiers = [
+    # Development Status
+    "Development Status :: 5 - Production/Stable",
+    
+    # Intended Audience
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    
+    # Topic
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering",
+    
+    # License
+    "License :: OSI Approved :: MIT License",
+    
+    # Programming Language
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10", 
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    
+    # Operating System
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    
+    # Framework
+    "Framework :: Jupyter",
+    
+    # Natural Language
+    "Natural Language :: English",
+    
+    # Typing
+    "Typing :: Typed"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "tokenizers>=0.13.0",
+    "datasets>=2.12.0",
+    "numpy>=1.21.0",
+    "scipy>=1.9.0",
+    "scikit-learn>=1.2.0",
+    "pandas>=1.5.0",
+    "matplotlib>=3.6.0",
+    "seaborn>=0.11.0",
+    "tqdm>=4.64.0",
+    "pyyaml>=6.0",
+    "jinja2>=3.1.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "pydantic>=2.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
+    "redis>=4.5.0",
+    "psycopg2-binary>=2.9.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.11.0",
+    "celery>=5.3.0",
+    "prometheus-client>=0.17.0",
+    "structlog>=23.0.0",
+    "python-multipart>=0.0.6",
+    "httpx>=0.24.0",
+    "aiofiles>=23.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4"
+]
+
+[project.optional-dependencies]
+# Development dependencies
+dev = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.7.0", 
+    "flake8>=6.0.0",
+    "bandit[toml]>=1.7.5",
+    "safety>=2.3.0",
+    "pre-commit>=3.5.0",
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "pytest-timeout>=2.2.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.21.0",
+    "hypothesis>=6.82.0",
+    "factory-boy>=3.3.0",
+    "freezegun>=1.2.2",
+    "responses>=0.23.0",
+    "httpx-mock>=0.10.0"
+]
+
+# Documentation dependencies  
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.4.0",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mkdocs-section-index>=0.3.0",
+    "mkdocstrings[python]>=0.23.0",
+    "mike>=1.1.0"
+]
+
+# Research and experimentation
+research = [
+    "jupyter>=1.0.0",
+    "ipykernel>=6.25.0",
+    "ipywidgets>=8.1.0",
+    "plotly>=5.15.0",
+    "wandb>=0.15.0",
+    "mlflow>=2.5.0",
+    "optuna>=3.2.0",
+    "ray[tune]>=2.5.0",
+    "tensorboard>=2.13.0",
+    "seaborn>=0.12.0",
+    "statsmodels>=0.14.0",
+    "pingouin>=0.5.0"
+]
+
+# GPU acceleration
+gpu = [
+    "nvidia-ml-py>=12.535.0",
+    "pynvml>=11.5.0",
+    "cupy-cuda12x>=12.2.0"
+]
+
+# Performance optimization
+performance = [
+    "numba>=0.57.0",
+    "cython>=3.0.0",
+    "orjson>=3.9.0",
+    "ujson>=5.8.0",
+    "lz4>=4.3.0",
+    "zstandard>=0.21.0"
+]
+
+# Production deployment
+prod = [
+    "gunicorn[gevent]>=21.0.0",
+    "gevent>=23.0.0",
+    "supervisor>=4.2.0",
+    "sentry-sdk[fastapi]>=1.29.0",
+    "python-dotenv>=1.0.0",
+    "cryptography>=41.0.0"
+]
+
+# Security
+security = [
+    "cryptography>=41.0.0",
+    "bcrypt>=4.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "oauthlib>=3.2.0",
+    "authlib>=1.2.0"
+]
+
+# All optional dependencies
+full = [
+    "bem[dev,docs,research,gpu,performance,prod,security]"
+]
+
+[project.scripts]
+bem-info = "bem_core._version:print_version_info"
+bem-demo = "scripts.demos.demo_simple_bem:main"
+bem-train = "scripts.train_experiment:main"
+bem-eval = "scripts.utilities.evaluate:main"
+bem-server = "scripts.run_server:main"
+
+[project.urls]
+Homepage = "https://github.com/nathanrice/BEM"
+Documentation = "https://github.com/nathanrice/BEM/blob/main/docs/"
+Repository = "https://github.com/nathanrice/BEM"
+"Bug Tracker" = "https://github.com/nathanrice/BEM/issues"
+Changelog = "https://github.com/nathanrice/BEM/blob/main/CHANGELOG.md"
+"Research Paper" = "https://arxiv.org/abs/XXXX.XXXX"
+Discussions = "https://github.com/nathanrice/BEM/discussions"
+
+# Setuptools configuration
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["bem*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+bem_core = ["config/templates/*.yaml", "config/schemas/*.json"]
+bem2 = ["**/*.yaml", "**/*.json", "**/*.txt"]
+
+# Black code formatting
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | archive
+)/
+'''
+
+# isort import sorting
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["bem_core", "bem2", "bem_legacy"]
+known_third_party = ["torch", "transformers", "numpy", "pandas"]
+skip_glob = ["archive/**", "build/**", "dist/**"]
+
+# MyPy type checking
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "transformers.*",
+    "datasets.*",
+    "torch.*",
+    "scipy.*",
+    "sklearn.*",
+    "matplotlib.*",
+    "seaborn.*",
+    "redis.*",
+    "sqlalchemy.*",
+    "alembic.*",
+    "celery.*",
+    "prometheus_client.*",
+    "wandb.*",
+    "mlflow.*",
+    "optuna.*",
+    "ray.*"
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.4"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+    "--timeout=300"
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "gpu: marks tests that require GPU",
+    "research: marks tests for research functionality",
+    "security: marks security-related tests"
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/conftest.py",
+    "src/bem_legacy/*",
+    "*/migrations/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+ignore_errors = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Bandit security linting
+[tool.bandit]
+exclude_dirs = ["tests", "archive", "build", "dist"]
+skips = ["B101", "B601"]
+
+# Flake8 configuration (in setup.cfg for compatibility)
+# See setup.cfg for flake8 configuration
+
+# Development tools configuration
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "2.0.0"
+tag_format = "v$version"
+version_files = [
+    "src/bem_core/_version.py:__version__",
+    "pyproject.toml:version"
+]
+
+[tool.semantic_release]
+version_variable = [
+    "src/bem_core/_version.py:__version__",
+    "pyproject.toml:version"
+]
+build_command = "pip install build && python -m build"
+upload_to_pypi = false
+upload_to_release = true
+hvcs = "github"
+
+# Additional metadata
+[tool.setuptools_scm]
+write_to = "src/bem_core/_scm_version.py"
+version_scheme = "release-branch-semver"

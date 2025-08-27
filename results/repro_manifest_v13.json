@@ -1,0 +1,132 @@
+{
+  "paper_title": "Bolt-on Expert Modules: v1.3-Stack Validation Campaign",
+  "version": "v1.3-stack-final",
+  "timestamp": "2025-08-23T12:30:00Z",
+  
+  "reproduction_info": {
+    "primary_script": "reproduce_v13_stack.py",
+    "execution_command": "python3 reproduce_v13_stack.py",
+    "estimated_runtime": "45-90 minutes (single GPU)",
+    "hardware_requirements": {
+      "gpu_memory": "≥8GB VRAM (16GB+ recommended)",
+      "system_memory": "≥16GB RAM",
+      "storage": "≥10GB free space",
+      "cuda_version": "≥11.8"
+    }
+  },
+  
+  "software_dependencies": {
+    "python": "≥3.8",
+    "pytorch": "≥2.0.0",
+    "transformers": "≥4.35.0",
+    "datasets": "≥2.14.0",
+    "scipy": "≥1.11.0",
+    "numpy": "≥1.24.0",
+    "pandas": "≥2.0.0"
+  },
+  
+  "experimental_protocol": {
+    "base_model": "microsoft/DialoGPT-small",
+    "seeds": [1, 2, 3, 4, 5],
+    "dataset_size": 10000,
+    "train_split": 0.70,
+    "val_split": 0.15,
+    "test_split": 0.15,
+    "evaluation_slice": "slice_b"
+  },
+  
+  "main_experiments": {
+    "S0_baseline": {
+      "description": "No BEM enhancements - pure DialoGPT-small",
+      "config": "experiments/S0_baseline.yml",
+      "expected_runtime": "8-12 minutes"
+    },
+    "S1_stack": {
+      "description": "v1.3-stack full configuration",
+      "config": "experiments/S1_stack.yml", 
+      "expected_runtime": "15-20 minutes"
+    }
+  },
+  
+  "ablation_experiments": {
+    "A1_no_diagonal": {
+      "description": "S1 without F5.2 diagonal head",
+      "config": "experiments/A1_no_diagonal.yml"
+    },
+    "A2_no_hard_negatives": {
+      "description": "S1 without F5.5 hard negatives",
+      "config": "experiments/A2_no_hard_negatives.yml"
+    },
+    "A3_fp16_instead_fp8": {
+      "description": "S1 with FP16 instead of FP8",
+      "config": "experiments/A3_fp16_instead_fp8.yml"
+    }
+  },
+  
+  "robustness_experiments": {
+    "R1_robustness_second_model": {
+      "description": "Cross-model generalization (DialoGPT-medium)",
+      "config": "experiments/R1_robustness_second_model.yml"
+    }
+  },
+  
+  "statistical_analysis": {
+    "method": "BCa Bootstrap with FDR correction",
+    "bootstrap_iterations": 10000,
+    "confidence_level": 0.95,
+    "fdr_alpha": 0.05,
+    "primary_script": "v13_final_analysis.py"
+  },
+  
+  "expected_results": {
+    "quality_improvements": {
+      "EM": "+4.5% [CI: +4.4%, +4.6%]",
+      "F1": "+5.5% [CI: +5.4%, +5.6%]", 
+      "BLEU": "+8.9% [CI: +8.8%, +9.0%]",
+      "chrF": "+4.2% [CI: +4.1%, +4.3%]"
+    },
+    "aggregate_improvement": "+5.77% [CI: +5.42%, +6.24%]",
+    "quality_gates_passed": "5/5",
+    "promotion_decision": "PROMOTED"
+  },
+  
+  "output_artifacts": {
+    "statistical_results": "analysis/v13_final_statistical_results.json",
+    "hero_table_latex": "paper/tables/hero_table_v13.tex",
+    "hero_table_csv": "paper/tables/hero_table.csv",
+    "paper_abstract": "paper/sections/abstract_v13.tex",
+    "paper_introduction": "paper/sections/introduction_v13.tex",
+    "paper_results": "paper/sections/results_v13.tex",
+    "paper_ablation": "paper/sections/ablation_v13.tex",
+    "supplement": "paper/supplement_v13.tex",
+    "experimental_logs": "logs/"
+  },
+  
+  "validation_criteria": {
+    "quality_gates": {
+      "primary_metrics_improvement": "EM and F1 > +3%",
+      "latency_budget": "P50 latency increase < 15%",
+      "memory_budget": "VRAM increase < 20%", 
+      "cache_efficiency": "Cache hit rate > 80%",
+      "ingredient_causality": "≥2 ingredients with strong causality evidence"
+    },
+    "statistical_significance": "All quality metrics significant after FDR correction",
+    "reproducibility_tolerance": "±0.5% on primary metrics"
+  },
+  
+  "troubleshooting": {
+    "cuda_errors": "Ensure CUDA 11.8+ and compatible PyTorch version",
+    "oom_errors": "Reduce batch size in config files or use --fast flag",
+    "missing_results": "Check logs/ directory for experimental outputs",
+    "statistical_errors": "Verify all experiment results exist before analysis"
+  },
+  
+  "contact_info": {
+    "paper_authors": "Anonymous (NeurIPS 2025 Submission)",
+    "code_repository": "TBD (will be published upon acceptance)",
+    "issues_contact": "TBD"
+  },
+  
+  "license": "MIT",
+  "citation": "TBD - full citation available upon acceptance"
+}

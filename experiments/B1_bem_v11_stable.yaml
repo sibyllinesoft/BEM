@@ -1,0 +1,124 @@
+metadata:
+  created: '2025-08-23'
+  version: 1.0.0
+  description: BEM-v1.1-stable with E1+E3+E4 components
+  experiment_id: B1_bem_v11_stable
+model:
+  base_model: microsoft/DialoGPT-small
+  tokenizer: microsoft/DialoGPT-small
+  context_length: 4096
+  mixed_precision: true
+  torch_dtype: float16
+  architecture: bem_v11_stable
+  retrieval_index: indices/domain.faiss
+  encoder: sentence-transformers/all-MiniLM-L6-v2
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    routing:
+      chunk_size: 128
+      hysteresis_tau: 0.7
+      routing_type: chunk_sticky
+    attention_bias:
+      enabled: true
+      bias_type: logit
+    governance:
+      spectral_clamp:
+        enabled: true
+        sigma_1_max: 2.0
+      frobenius_trust_region:
+        enabled: true
+        tau: 0.1
+    alpha: 16.0
+    dropout: 0.1
+    gate_entropy_reg: 0.01
+    flip_penalty: 0.1
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 0.0002
+  batch_size: 8
+  max_steps: 1000
+  warmup_steps: 100
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 200
+  eval_steps: 100
+data:
+  train:
+    jsonl_path: data/train.jsonl
+  eval:
+    jsonl_path: data/val.jsonl
+  max_seq_length: 4096
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  cache_monitoring:
+    enabled: true
+    kv_hit_threshold: 0.8
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+logging:
+  log_level: INFO
+  wandb_project: bem_v11_research
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  export_formats:
+  - jsonl
+  - csv
+  wandb_tags:
+  - B1
+  - bem_v11_stable
+  - main
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  - q_proj
+  - k_proj
+  - v_proj
+  validate_rank_schedule: true
+  validate_attachment_points: true
+  validate_param_budget: true
+  max_param_increase_pct: 5.0

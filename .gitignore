@@ -1,0 +1,524 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be added to the global gitignore or merged into this project gitignore.  For PyCharm
+#  Community Edition, use 'PyCharm CE.gitignore'.
+.idea/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.exe
+*.msi
+*.lnk
+
+# Linux
+*~
+
+# Machine Learning specific
+# Model weights and checkpoints
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.model
+*.bin
+*.safetensors
+
+# Hugging Face cache and models
+.cache/huggingface/
+.cache/transformers/
+transformers_cache/
+*cache/
+*/cache/
+*/snapshots/
+*/blobs/
+*/refs/
+
+# Weights & Biases
+wandb/
+
+# TensorBoard logs
+runs/
+tb_logs/
+tensorboard_logs/
+events.out.tfevents.*
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# DVC
+.dvc/
+*.dvc
+
+# Neptune
+.neptune/
+
+# Comet
+.comet.config
+
+# Sacred experiment tracking
+logs/sacred/
+
+# Large datasets (should use Git LFS or external storage)
+*.csv.gz
+*.json.gz
+*.parquet
+*.feather
+*.arrow
+*_large.csv
+*_full.csv
+*_complete.csv
+
+# Data directories that should not be in git
+data/raw/
+data/processed/
+data/external/
+datasets/
+raw_data/
+processed_data/
+
+# Experiment outputs and results - comprehensive patterns
+results/outputs/
+results/figures/
+results/models/
+results/checkpoints/
+results/predictions/
+results/evaluations/
+results/analysis/
+results/artifacts/
+results/*.png
+results/*.pdf
+results/*.pt
+results/*.pth
+results/*.safetensors
+experiments/outputs/
+experiments/logs/
+experiments/checkpoints/
+
+# Generated files - expanded patterns
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.eps
+*.svg
+*.tiff
+*.bmp
+generated_*
+output_*
+result_*
+prediction_*
+evaluation_*
+*_output.*
+*_result.*
+*_generated.*
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+*.alg
+*.loa
+*.lof
+*.lot
+*.glo
+*.glg
+*.gls
+*.fls
+*.fdb_latexmk
+*.figlist
+*.makefile
+*.idx
+*.ind
+*.ilg
+*.out
+*.toc
+*.acn
+*.acr
+*.glsdefs
+*.xdy
+
+# Paper generation artifacts
+auto/
+paper/auto/
+*/auto/
+paper/figs/*.pdf
+paper/figs/*.png
+paper/tables/*.tex
+supplement/
+
+# Configuration files with secrets
+config/secrets.yaml
+config/api_keys.yaml
+.secrets
+.api_keys
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Local configuration overrides
+config/local.yaml
+config/dev.yaml
+local_config.*
+dev_config.*
+
+# Temporary files
+*.tmp
+*.temp
+*_temp.*
+*_tmp.*
+scratch/
+temp/
+tmp/
+
+# Compressed files
+*.zip
+*.tar.gz
+*.tar.bz2
+*.7z
+*.rar
+
+# Logs
+*.log
+logs/
+log/
+
+# Node.js (if using any JS tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# R files (if using R integration)
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+
+# Jupyter notebook outputs (keep notebooks but remove outputs)
+*_output.ipynb
+
+# Archive directory (contains old/legacy files not needed in git)
+archive/
+
+# Backup files
+*.bak
+*.backup
+*~
+*_backup_*/
+experiments_backup_*/
+
+# Conversion and temporary logs
+conversion_log.txt
+conversion_report_*.txt
+*_conversion_*.txt
+*_conversion_*.log
+
+# Lock files for data processing
+*.lock
+.processing_lock
+
+# SLURM job outputs
+slurm-*.out
+slurm-*.err
+
+# Conda environments
+*.conda
+
+# Model artifacts that should be downloaded, not committed
+# Exclude all large model files - use download scripts instead
+models/*/model.safetensors
+models/*/pytorch_model.bin  
+models/*/model.bin
+models/*/adapter_model.safetensors
+models/*/tokenizer.json
+models/*/vocab.json
+models/*/merges.txt
+models/*/tokenizer.model
+models/*cache/
+models/*/blobs/
+models/*/refs/
+models/*/snapshots/
+
+# Allow essential model configs and metadata only
+!models/*/config.json
+!models/*/tokenizer_config.json
+!models/*/generation_config.json
+!models/*/preprocessor_config.json
+!models/*/special_tokens_map.json
+!models/*/download_metadata.json
+!models/*/encoder_metadata.json
+!models/*/value_model_metadata.json
+!models/*/constitution.json
+!models/*/chat_template.jinja
+
+# Exclude model checkpoint files (should be downloaded)
+models/*/*.pt
+models/*/*.pth
+models/*/*.ckpt
+
+# Release artifacts
+*.tar.gz
+*.whl
+security-report.json
+safety-report.json
+profile.stats
+
+# Build and deployment artifacts
+deployment/dist/
+build/
+dist/
+*.egg/
+*.wheel
+*.whl
+
+# Coverage reports
+.coverage*
+coverage.xml
+*.cover
+htmlcov/
+
+# Profiling data
+*.prof
+profile.stats
+*.stats
+
+# Benchmark results
+benchmark_results/
+benchmarks/*.json
+benchmarks/*.csv
+
+# CI/CD artifacts
+.github/workflows/cache/
+ci_cache/
+build_cache/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment and configuration overrides
+.env.local
+.env.production
+.env.staging
+config/local*
+config/dev*
+config/*local*
+
+# IDE and editor specific (additional)
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/workspace.xml
+.idea/tasks.xml
+
+# Git LFS objects (if using LFS)
+*.lfs
+
+# Serena memory files
+.serena/
+
+# Generated validation experiment data (keep documentation, exclude synthetic datasets)
+data/validation_experiment/*.json
+data/validation_experiment/sample_*.json

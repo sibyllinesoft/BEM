@@ -1,0 +1,111 @@
+metadata:
+  created: '2025-08-23'
+  version: 1.0.0
+  description: Static LoRA baseline with same rank schedule and attachment points
+    as BEM
+  experiment_id: L0_static_lora
+model:
+  base_model: microsoft/DialoGPT-small
+  tokenizer: microsoft/DialoGPT-small
+  context_length: 4096
+  mixed_precision: true
+  torch_dtype: float16
+  architecture: static_lora
+  lora_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    alpha: 16.0
+    dropout: 0.1
+    routing: null
+    attention_bias: null
+    regularization:
+      weight_decay: 0.01
+      grad_clip_norm: 1.0
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 0.0002
+  batch_size: 8
+  max_steps: 1000
+  warmup_steps: 100
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 200
+  eval_steps: 100
+data:
+  train:
+    jsonl_path: data/train.jsonl
+  eval:
+    jsonl_path: data/val.jsonl
+  max_seq_length: 4096
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  cache_monitoring:
+    enabled: false
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+logging:
+  log_level: INFO
+  wandb_project: bem_v11_research
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  export_formats:
+  - jsonl
+  - csv
+  wandb_tags:
+  - L0
+  - static_lora
+  - baseline
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  - q_proj
+  - k_proj
+  - v_proj
+  validate_rank_schedule: true
+  validate_attachment_points: true
+  validate_param_budget: true
+  max_param_increase_pct: 5.0

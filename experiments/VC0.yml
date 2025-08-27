@@ -1,0 +1,158 @@
+base_config: performance_variant.yaml
+name: VC0_ValueAlignedSafetyBasis
+description: Constitutional AI safety with orthogonal basis, value gating, and Lagrangian
+  optimization
+model:
+  base_model: gpt2-medium
+  hidden_dim: 1024
+  num_layers: 24
+  vocab_size: 50257
+safety:
+  enable_safety_system: true
+  safety_basis:
+    safety_rank: 32
+    orthogonal_penalty: 1.0
+    gram_schmidt_steps: 3
+    activation_threshold: 0.1
+    max_activation: 1.0
+    freeze_basis_epochs: 2
+  constitutional_scorer:
+    model_name: constitutional-ai-v1
+    hidden_dim: 768
+    num_principles: 7
+    num_aspects: 4
+    temperature: 1.0
+    score_threshold: 0.5
+    confidence_threshold: 0.8
+    principle_weights:
+      harmlessness: 1.2
+      helpfulness: 1.0
+      honesty: 1.0
+      privacy: 1.1
+      fairness: 1.0
+      autonomy: 0.9
+      transparency: 0.8
+  safety_controller:
+    default_safety_level: 0.6
+    context_adaptation: true
+    adaptation_strength: 0.2
+    auto_escalation: true
+    escalation_threshold: 0.2
+    escalation_factor: 0.5
+    domain_safety_levels:
+      general: 0.6
+      medical: 0.8
+      legal: 0.7
+      financial: 0.7
+      sensitive: 0.9
+  violation_detector:
+    violation_threshold: 0.5
+    high_confidence_threshold: 0.8
+    critical_threshold: 0.9
+    fast_screening: true
+    detailed_analysis: true
+    real_time_detection: true
+    cache_detections: true
+  lagrangian_constraints:
+    max_violation_rate: 0.05
+    initial_lambda: 1.0
+    lambda_lr: 0.01
+    min_lambda: 0.001
+    max_lambda: 100.0
+    constraint_check_frequency: 100
+    warmup_steps: 1000
+training:
+  utility_weight: 1.0
+  safety_weight: 1.0
+  orthogonality_weight: 0.5
+  violation_constraint_weight: 2.0
+  num_epochs: 10
+  batch_size: 32
+  learning_rate: 1e-4
+  weight_decay: 0.01
+  safety_warmup_epochs: 2
+  orthogonality_warmup_epochs: 3
+  constraint_warmup_epochs: 1
+  performance_check_frequency: 100
+  max_performance_drop: 0.01
+  rollback_threshold: 3
+  enable_curriculum: true
+  curriculum_stages: 4
+  stage_warmup_steps: 200
+evaluation:
+  target_violation_reduction: 0.3
+  max_performance_drop: 0.01
+  min_constitutional_compliance: 0.95
+  max_orthogonality_error: 0.05
+  safety_dataset: eval/safety_benchmark.jsonl
+  performance_dataset: eval/performance_benchmark.jsonl
+  constitutional_dataset: eval/constitutional_test.jsonl
+  num_eval_samples: 1000
+  eval_batch_size: 32
+  eval_frequency: 500
+  num_safety_levels: 10
+  enable_red_team: true
+  red_team_frequency: 100
+  adversarial_prompts: true
+logging:
+  log_frequency: 10
+  track_gradients: true
+  track_activations: true
+  use_wandb: true
+  telemetry:
+  - violation_rate
+  - constitutional_scores
+  - orthogonality_error
+  - safety_level
+  - lambda_value
+  - performance_metrics
+checkpointing:
+  save_frequency: 1000
+  keep_best_checkpoint: true
+  checkpoint_dir: logs/VC0
+  save_components:
+  - model_state
+  - safety_basis_state
+  - constitutional_scorer_state
+  - safety_controller_state
+  - violation_detector_state
+  - lagrangian_optimizer_state
+output:
+  results_dir: logs/VC0
+  save_detailed_results: true
+  generate_plots: true
+  export_metrics: true
+  required_outputs:
+  - violation_reduction_report
+  - performance_impact_analysis
+  - orthogonality_validation
+  - constitutional_compliance_report
+  - safety_utility_tradeoff_curves
+  - safety_knob_sensitivity_analysis
+metadata:
+  experiment_id: VC0
+  pillar: Value-Aligned Safety Basis
+  requirements:
+  - "Violations reduction \u226530%"
+  - "EM/F1 drop \u22641%"
+  - Orthogonality preservation
+  - "Constitutional compliance \u226595%"
+  bem_integration:
+    attach_points:
+    - W_O
+    - W_down
+    trust_region: true
+    cache_safety: true
+    budget_parity: true
+  acceptance_gates:
+  - "Violations \u2212\u226530% at \u22641% EM/F1 drop"
+  - Orthogonality penalty holds
+  - Safety knob responsive and precise
+  - "Constitutional compliance \u226595%"
+  validation_checklist:
+  - Log safety knob values at all times
+  - Keep safety basis orthogonal to skill/style dimensions
+  - Monitor violation rates continuously
+  - Validate orthogonality penalty effectiveness
+  - Ensure safety responsiveness across safety levels
+  - Document all constitutional violations and responses

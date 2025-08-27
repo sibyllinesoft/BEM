@@ -1,0 +1,122 @@
+[
+  {
+    "id": "cand_0",
+    "text": "Candidate answer 0",
+    "metadata": {
+      "source": "train",
+      "example_id": 0
+    }
+  },
+  {
+    "id": "cand_1",
+    "text": "Candidate answer 1",
+    "metadata": {
+      "source": "train",
+      "example_id": 1
+    }
+  },
+  {
+    "id": "cand_2",
+    "text": "Candidate answer 2",
+    "metadata": {
+      "source": "train",
+      "example_id": 2
+    }
+  },
+  {
+    "id": "cand_3",
+    "text": "Candidate answer 3",
+    "metadata": {
+      "source": "train",
+      "example_id": 3
+    }
+  },
+  {
+    "id": "cand_4",
+    "text": "Candidate answer 4",
+    "metadata": {
+      "source": "train",
+      "example_id": 4
+    }
+  },
+  {
+    "id": "cand_5",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 0",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 5
+    }
+  },
+  {
+    "id": "cand_6",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 1",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 6
+    }
+  },
+  {
+    "id": "cand_7",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 2",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 7
+    }
+  },
+  {
+    "id": "cand_8",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 3",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 8
+    }
+  },
+  {
+    "id": "cand_9",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 4",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 9
+    }
+  },
+  {
+    "id": "cand_10",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 0",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 10
+    }
+  },
+  {
+    "id": "cand_11",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 1",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 11
+    }
+  },
+  {
+    "id": "cand_12",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 2",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 12
+    }
+  },
+  {
+    "id": "cand_13",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 3",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 13
+    }
+  },
+  {
+    "id": "cand_14",
+    "text": "This is a plausible but incorrect answer that shares some words with the correct answer for question 4",
+    "metadata": {
+      "source": "synthetic",
+      "example_id": 14
+    }
+  }
+]

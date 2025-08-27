@@ -1,0 +1,170 @@
+BEM (Basis Extension Modules)
+Copyright 2024 Nathan Rice and BEM Research Team
+
+This product includes software developed by various open source projects and
+research institutions. We gratefully acknowledge the contributions of these
+projects and their maintainers.
+
+================================================================================
+
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+This software incorporates components from the projects listed below. The
+original copyright notice and the license under which we received such
+components are set forth below for informational purposes. Such licenses and
+notices are provided for informational purposes only. We license these
+components to you under our MIT License.
+
+================================================================================
+
+PyTorch
+Copyright (c) 2016-2023 Facebook, Inc and its affiliates. All rights reserved.
+Licensed under BSD-3-Clause License
+https://github.com/pytorch/pytorch/blob/main/LICENSE
+
+Transformers (Hugging Face)
+Copyright 2018- The Hugging Face team. All rights reserved.
+Licensed under Apache License 2.0
+https://github.com/huggingface/transformers/blob/main/LICENSE
+
+NumPy
+Copyright (c) 2005-2023, NumPy Developers
+Licensed under BSD-3-Clause License
+https://github.com/numpy/numpy/blob/main/LICENSE.txt
+
+SciPy
+Copyright (c) 2001-2023, SciPy Developers
+Licensed under BSD-3-Clause License
+https://github.com/scipy/scipy/blob/main/LICENSE.txt
+
+scikit-learn
+Copyright (c) 2007-2023 The scikit-learn developers
+Licensed under BSD-3-Clause License
+https://github.com/scikit-learn/scikit-learn/blob/main/COPYING
+
+FastAPI
+Copyright (c) 2018 Sebastián Ramírez
+Licensed under MIT License
+https://github.com/tiangolo/fastapi/blob/master/LICENSE
+
+Pydantic
+Copyright (c) 2017 Samuel Colvin
+Licensed under MIT License
+https://github.com/pydantic/pydantic/blob/main/LICENSE
+
+pytest
+Copyright (c) 2004 Holger Krekel and others
+Licensed under MIT License
+https://github.com/pytest-dev/pytest/blob/main/LICENSE
+
+================================================================================
+
+RESEARCH ACKNOWLEDGMENTS
+
+This work builds upon and extends research from various institutions and
+academic publications. We acknowledge the following research contributions:
+
+Mixture of Experts Literature:
+- Original Mixture of Experts work by Jacobs et al. (1991)
+- Switch Transformer architecture by Fedus et al. (2021)
+- GLaM architecture by Du et al. (2021)
+
+Parameter-Efficient Fine-Tuning:
+- LoRA methodology by Hu et al. (2021)
+- AdaLoRA by Zhang et al. (2023)
+- Parallel adapter architectures
+
+Constitutional AI and Safety:
+- Constitutional AI by Anthropic (Bai et al., 2022)
+- Safety evaluation methodologies
+
+Statistical Methodology:
+- Bootstrap methodology by Efron & Tibshirani
+- Multiple testing corrections by Benjamini & Hochberg
+- Effect size analysis frameworks
+
+================================================================================
+
+DATASET ACKNOWLEDGMENTS
+
+This software may be used with various datasets. Users should ensure proper
+attribution and compliance with dataset licenses when using BEM with specific
+datasets. Common datasets that may be used include:
+
+- Common Crawl data (subject to Common Crawl Terms of Use)
+- Various academic benchmarks (each with their own licensing terms)
+- OpenAI datasets (subject to OpenAI's usage policies)
+
+Users are responsible for ensuring compliance with all applicable dataset
+licenses and terms of use.
+
+================================================================================
+
+MODEL ACKNOWLEDGMENTS
+
+BEM is designed to work with various pre-trained models. When using specific
+models, users should provide proper attribution:
+
+Microsoft DialoGPT:
+Copyright (c) Microsoft Corporation
+Licensed under MIT License
+Used as base model in demonstrations and testing
+
+Other Hugging Face Models:
+Various models from Hugging Face Hub have their own licenses
+Users must comply with individual model licenses
+Model cards provide licensing and attribution information
+
+================================================================================
+
+RESEARCH INSTITUTION ACKNOWLEDGMENTS
+
+This research was conducted with support from:
+
+[Update with actual institutional affiliations]
+- Academic Institution Affiliations (if any)
+- Research Grant Support (if any)
+- Computing Resource Providers (if any)
+
+================================================================================
+
+COMMUNITY CONTRIBUTIONS
+
+We acknowledge the contributions of the open source community, including:
+
+- GitHub contributors to this repository
+- Issue reporters and feature requestors
+- Documentation contributors
+- Beta testers and early users
+
+A complete list of contributors can be found in the repository's contributor
+section and individual commit history.
+
+================================================================================
+
+SPECIAL THANKS
+
+Special thanks to:
+
+- Research advisors and collaborators
+- The broader machine learning research community
+- Open source maintainers whose work makes projects like this possible
+- Academic conferences and workshops that provide venues for research sharing
+
+================================================================================
+
+DISCLAIMER
+
+This software is provided "as is" without warranty of any kind. The research
+results and methodologies are provided for educational and research purposes.
+Users should validate results for their specific use cases.
+
+The inclusion of third-party software does not imply endorsement of this
+project by those third parties.
+
+================================================================================
+
+For questions about third-party licenses or attributions, please contact:
+nathan@example.com
+
+Last Updated: December 2024

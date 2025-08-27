@@ -1,0 +1,287 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: ADV_adversarial_retrieval
+  description: v1.3-stack adversarial robustness test with contradictory near-duplicates
+  version: 1.3.0-adversarial-ADV
+  created: '2024-08-23'
+  campaign: v1.3-stack-validation-phase4-robustness
+  robustness_type: adversarial_retrieval_stress_test
+  parent_config: S1_stack
+  hypothesis: "v1.3-stack maintains policy-over-memory with controlled \u0394W magnitude\
+    \ under contradiction"
+model:
+  base_model: microsoft/DialoGPT-small
+  architecture: bem_v13_stack
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    num_experts: 2
+    alpha: 16.0
+    dropout: 0.1
+    svd_init:
+      enabled: true
+      init_file: artifacts/svd_init.pt
+      freeze_steps: 50
+    low_rank_diagonal:
+      enabled: true
+      diagonal_head: true
+      clamp_norm_inf: 1.0
+      include_in_budgets: true
+    routing:
+      chunk_size: 128
+      hysteresis_tau: 0.7
+      routing_type: chunk_sticky
+    attention_bias:
+      enabled: true
+      retrieval_dim: 768
+      bias_hidden_dim: 64
+      contradiction_detection: true
+      bias_regularization: 0.05
+    governance:
+      max_singular_value: 1.0
+      fro_budget: 1.0
+      trust_region: true
+      track_spectra: true
+      contradiction_penalty: 0.2
+      delta_w_regularization: 0.1
+hard_negatives:
+  enabled: true
+  corpus_file: data/adversarial_hard_negs.jsonl
+  contradiction_features: true
+  consistency_features: true
+  contradiction_penalty: 0.2
+  delta_w_reduction: true
+  near_duplicate_detection: true
+  contradiction_threshold: 0.8
+  policy_over_memory_enforcement: true
+fp8_qat:
+  enabled: true
+  quantize_components:
+  - U
+  - V
+  quantization: per_channel
+  fake_quant: true
+  tolerance_check: true
+  tolerance_threshold: 1e-3
+  auto_fallback: true
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 8e-5
+  batch_size: 8
+  max_steps: 300
+  warmup_steps: 30
+  optimizer: adamw
+  weight_decay: 0.02
+  grad_clip_norm: 0.8
+  adversarial_schedule:
+    enabled: true
+    start_step: 100
+    adversarial_ratio: 0.4
+    escalation_schedule: linear
+  save_steps: 50
+  eval_steps: 50
+data:
+  train_file: data/train.jsonl
+  eval_file: data/val.jsonl
+  max_seq_length: 512
+  retrieval:
+    index_file: indices/adversarial_retrieval.faiss
+    num_retrieved: 20
+    retrieval_model: sentence-transformers/all-mpnet-base-v2
+    include_hard_negatives: true
+    hard_neg_ratio: 0.4
+    contradiction_injection:
+      enabled: true
+      contradiction_ratio: 0.3
+      near_duplicate_threshold: 0.85
+      semantic_contradiction_detection: true
+    retrieval_corruption_test:
+      enabled: true
+      corruption_levels:
+      - 0.1
+      - 0.3
+      - 0.5
+      corrupt_ratio: 0.2
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+    slice_adv_clean:
+      name: Adversarial-Clean
+      type: adversarial_clean
+      contradiction_threshold: 0.0
+    slice_adv_mild:
+      name: Adversarial-Mild
+      type: adversarial_mild
+      contradiction_threshold: 0.3
+    slice_adv_severe:
+      name: Adversarial-Severe
+      type: adversarial_severe
+      contradiction_threshold: 0.7
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - cache_hit_rate_pct
+  - contradiction_detection_rate
+  - policy_adherence_score
+  - delta_w_magnitude_under_contradiction
+  telemetry:
+    flips_per_token: true
+    gate_entropy: true
+    gate_utilization: true
+    delta_w_norms: true
+    top_singular_values: true
+    contradiction_scores: true
+    policy_vs_memory_conflicts: true
+    delta_w_reduction_effectiveness: true
+  index_swap_test:
+    enabled: true
+    indices:
+    - indices/clean.faiss
+    - indices/shuffled.faiss
+    - indices/corrupt.faiss
+    adversarial_indices:
+    - indices/adversarial_mild.faiss
+    - indices/adversarial_severe.faiss
+    monotonicity_requirement: true
+  cache_monitoring:
+    enabled: true
+    track_kv_hits: true
+    track_routing_flips: true
+    track_gate_entropy: true
+    export_routing_decisions: true
+    track_contradiction_responses: true
+    track_delta_w_magnitude_changes: true
+quality_gates:
+  adversarial_robustness:
+    enabled: true
+    max_clean_to_mild_degradation: 5.0
+    max_clean_to_severe_degradation: 15.0
+    policy_over_memory_maintained: true
+    min_policy_adherence_score: 0.7
+  delta_w_control:
+    enabled: true
+    max_contradiction_delta_w_increase: 20.0
+    contradiction_detection_min_rate: 0.8
+  latency_budget:
+    enabled: true
+    max_increase_pct: 20.0
+  cache_performance:
+    enabled: true
+    min_hit_rate_pct: 75.0
+  vram_budget:
+    enabled: true
+    max_delta_pct: 8.0
+  param_parity:
+    enabled: true
+    tolerance_pct: 5.0
+    baseline_params: 10070016
+    baseline_flops: 13740539904
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  validate_svd_init: true
+  validate_diagonal_head: true
+  validate_hard_negatives: true
+  validate_fp8_numerics: true
+  validate_contradiction_handling: true
+  validate_policy_over_memory: true
+  prevent_catastrophic_forgetting: true
+  validate_param_budget: true
+  max_param_increase_pct: 5.0
+  abort_on_breach: true
+logging:
+  log_level: INFO
+  wandb_project: bem_v13_stack_validation_phase4
+  wandb_tags:
+  - ADV
+  - adversarial
+  - contradiction
+  - policy_over_memory
+  - robustness
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - cache_metrics
+  - routing_metrics
+  - governance_metrics
+  - fp8_metrics
+  - hard_neg_metrics
+  - svd_metrics
+  - adversarial_metrics
+  - contradiction_metrics
+  - policy_memory_metrics
+  export_formats:
+  - jsonl
+  - csv
+  export_detailed_telemetry: true
+analysis:
+  stats_config:
+    n_bootstrap: 10000
+    alpha: 0.05
+    fdr_method: fdr_bh
+    paired_analysis: true
+  aggregate_config:
+    metrics:
+    - EM
+    - F1
+    - BLEU
+    - chrF
+    slice: slice_b
+    relative_improvement: true
+  adversarial_analysis:
+    enabled: true
+    baseline_config: S1_stack
+    degradation_analysis:
+      enabled: true
+      clean_slice: slice_adv_clean
+      mild_slice: slice_adv_mild
+      severe_slice: slice_adv_severe
+    policy_memory_analysis:
+      enabled: true
+      measure_policy_adherence: true
+      measure_delta_w_control: true
+      measure_contradiction_detection: true
+  monotonicity_analysis:
+    enabled: true
+    require_strict_monotonicity: true
+    include_adversarial_indices: true
+reproducibility:
+  robustness_type: adversarial_retrieval_stress_test
+  adversarial_corpus: adversarial_hard_negs.jsonl
+  code_version: bem_v1.3.0-adversarial
+  svd_init_hash: null
+  hard_neg_hash: null
+  fp8_config_hash: null
+  adversarial_index_hash: null
+  contradiction_corpus_hash: null

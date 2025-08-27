@@ -1,0 +1,200 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: f51_stateful_router
+  description: F5.1 - Stateful router with GRU/SSM over chunk summaries
+  version: 1.3.0
+  created: '2024-08-23'
+  fast5_variant: F5.1
+model:
+  base_model: llama2-7b
+  architecture: bem_v11_stable
+  bem_config:
+    sites:
+    - W_O
+    - W_down
+    rank_schedule:
+    - 2
+    - 4
+    - 8
+    - 8
+    - 8
+    - 4
+    - 2
+    num_experts: 2
+    alpha: 16.0
+    dropout: 0.1
+    stateful_routing:
+      enabled: true
+      use_ssm: false
+      d_state: 64
+      chunk_size: 128
+      flip_penalty_beta: 0.01
+      hidden_norm_clamp: 5.0
+      hysteresis_tau: 0.7
+      dropout: 0.1
+      controller_init_scale: 0.01
+    attention_bias:
+      enabled: true
+      retrieval_dim: 768
+      bias_hidden_dim: 64
+    governance:
+      max_singular_value: 1.0
+      fro_budget: 1.0
+      trust_region: true
+training:
+  seeds:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  learning_rate: 1e-4
+  batch_size: 16
+  max_steps: 5000
+  warmup_steps: 500
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  stateful_training:
+    controller_ramp_steps: 1000
+    flip_penalty_weight: 0.01
+    state_norm_penalty: 0.001
+  save_steps: 1000
+  eval_steps: 500
+data:
+  train_file: data/train.jsonl
+  eval_file: data/eval.jsonl
+  max_seq_length: 2048
+  retrieval:
+    index_file: indices/retrieval.faiss
+    num_retrieved: 10
+    retrieval_model: sentence-transformers/all-mpnet-base-v2
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+  stateful_metrics:
+  - routing_entropy
+  - flip_rate
+  - state_norm
+  - routing_stability
+  - chunk_consistency
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - cache_hit_rate_pct
+  cache_monitoring:
+    enabled: true
+    track_kv_hits: true
+    track_routing_flips: true
+    track_gate_entropy: true
+    export_routing_decisions: true
+    export_state_sequences: true
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+quality_gates:
+  baseline_threshold:
+    enabled: true
+    metrics:
+    - EM
+    - F1
+    - BLEU
+    - chrF
+    min_improvement_pct: 1.0
+  latency_budget:
+    enabled: true
+    max_increase_pct: 5.0
+    metric: p50_latency_ms
+  cache_performance:
+    enabled: true
+    min_hit_rate_pct: 80.0
+  vram_budget:
+    enabled: true
+    max_delta_pct: 2.0
+  routing_stability:
+    enabled: true
+    max_flip_rate: 0.1
+    min_entropy_improvement: 0.05
+budget_validation:
+  enabled: true
+  param_budget_pct: 5.0
+  flop_budget_pct: 5.0
+  reference_config: experiments/v11_baseline.yml
+  expected_param_change_pct: 0.5
+logging:
+  log_level: INFO
+  wandb_project: bem_v13_fast5
+  wandb_tags:
+  - bem_v13
+  - f51
+  - stateful_router
+  - fast5
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - cache_metrics
+  - routing_metrics
+  - stateful_metrics
+  export_formats:
+  - jsonl
+  - csv
+  export_routing_data: true
+  export_state_data: true
+safety:
+  verify_cache_safety: true
+  forbidden_sites:
+  - W_Q
+  - W_K
+  - W_V
+  - q_proj
+  - k_proj
+  - v_proj
+  validate_rank_schedule: true
+  validate_attachment_points: true
+  validate_param_budget: true
+  max_param_increase_pct: 5.0
+analysis:
+  stats_config:
+    n_bootstrap: 10000
+    alpha: 0.05
+    fdr_method: fdr_bh
+  cache_analysis:
+    enabled: true
+    export_detailed_metrics: true
+  stateful_analysis:
+    enabled: true
+    analyze_state_evolution: true
+    compute_routing_stability: true
+    export_flip_sequences: true
+  pareto_analysis:
+    enabled: true
+    primary_metric: F1
+    latency_metric: p50_latency_ms
+reproducibility:
+  code_version: bem_v1.3.0
+  config_hash: null
+  python_version: null
+  torch_version: null
+  cuda_version: null
+  data_hash: null
+  index_hash: null

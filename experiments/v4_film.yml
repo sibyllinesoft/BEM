@@ -1,0 +1,248 @@
+# PT4 Residual FiLM Micro-γ,β - V4 Experiment Configuration
+# Expected: Validity improvements, no regressions, minimal compute
+
+name: "v4_residual_film_micro"
+version: "1.0"  
+description: "Residual FiLM with micro-γ,β modulation for coherence and format improvements"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "performance_variant"
+variant_id: "V4"
+
+# Model architecture
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder - replace with actual base
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+
+# Residual FiLM Configuration
+residual_film:
+  enabled: true
+  
+  # FiLM parameters (minimal overhead)
+  gamma_dim: 16                # Tiny γ (scaling) parameters
+  beta_dim: 16                 # Tiny β (shift) parameters  
+  controller_dim: 32           # Minimal hidden dimension
+  
+  # Micro-modulation settings
+  micro_scale: 0.01           # Tiny scaling for micro-modulation
+  clamp_range: 0.1            # Strict clamping [-0.1, +0.1]
+  residual_scale: 0.1         # Conservative residual connection scale
+  
+  # Controller network (lightweight)
+  controller_layers: 2        # Shallow network
+  controller_activation: "gelu"
+  controller_dropout: 0.05    # Light dropout
+  
+  # Feature-wise transformation
+  use_channel_wise: true      # Apply channel-wise modulation
+  use_spatial_wise: false     # Skip expensive spatial modulation
+  normalize_features: true    # Normalize inputs before modulation
+  
+  # Stability constraints (strict)
+  max_gamma: 1.2              # Maximum gamma value
+  min_gamma: 0.8              # Minimum gamma value  
+  max_beta: 0.1               # Maximum beta magnitude
+  gamma_init: 1.0             # Initialize γ to identity
+  beta_init: 0.0              # Initialize β to zero
+  
+  # Minimal overhead enforcement
+  minimal_overhead: true      # Enforce parameter budget
+  max_param_overhead_pct: 2.0 # Max 2% parameter overhead
+
+# Training configuration
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # FiLM-specific learning rates
+  film_controller_lr: 1e-4    # Separate LR for controller
+  gamma_beta_lr: 1e-5         # Very conservative for γ,β parameters
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+  
+  # Regularization for stability
+  film_reg_weight: 0.01       # Regularization on FiLM parameters
+  identity_reg_weight: 0.1    # Encourage identity transformation
+  smoothness_reg_weight: 0.05 # Encourage smooth modulation
+
+# Data configuration  
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+    
+  # Format/coherence evaluation data
+  format_eval_file: "data/format_evaluation.jsonl"  # Structured format tasks
+  coherence_eval_file: "data/coherence_evaluation.jsonl"  # Coherence tasks
+
+# Budget constraints (strict minimal overhead)
+budget_constraints:
+  parameter_tolerance: 0.02   # Very strict: ±2% for minimal overhead
+  flop_tolerance: 0.05       # ±5%
+  memory_tolerance: 0.05     # ±5% (minimal activation overhead)
+  compute_overhead_tolerance: 0.01  # <1% compute overhead
+  enforce_constraints: true
+  abort_on_violation: true
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # Performance gates for FiLM
+  performance_gates:
+    no_regression_threshold: -0.005  # No >0.5% regression on core metrics
+    validity_improvement: 0.01       # +1% validity improvement
+    format_score_improvement: 0.02   # +2% format adherence
+    minimal_compute_overhead: 0.01   # <1% compute overhead
+  
+  # Metrics focused on validity and format
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu"
+    - "chrf"
+    - "format_adherence_score"
+    - "response_validity"
+    - "coherence_score"
+    - "consistency_score"
+    - "parameter_overhead_pct"
+    - "compute_overhead_pct"
+
+# Format and coherence evaluation
+format_evaluation:
+  enabled: true
+  metrics:
+    - "json_parse_success_rate"    # JSON format adherence
+    - "structure_compliance"       # Structured output compliance
+    - "field_completeness"         # All required fields present
+    - "type_consistency"           # Correct data types
+    - "logical_coherence"          # Internal logical consistency
+    - "response_relevance"         # Relevance to query
+  
+  evaluation_frequency: 100       # Evaluate every N steps
+
+# Validity assessment
+validity_assessment:
+  enabled: true
+  checks:
+    - "syntactic_validity"        # Syntactically correct responses
+    - "semantic_consistency"      # Semantically consistent
+    - "factual_accuracy"          # Basic factual correctness
+    - "style_consistency"         # Consistent writing style
+    - "length_appropriateness"    # Appropriate response length
+  
+  scoring_method: "weighted_average"
+  weights:
+    syntactic_validity: 0.3
+    semantic_consistency: 0.3
+    factual_accuracy: 0.2
+    style_consistency: 0.1
+    length_appropriateness: 0.1
+
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "film_loss"
+    - "identity_reg_loss"
+    - "smoothness_reg_loss"
+    - "gamma_statistics"
+    - "beta_statistics"
+    - "modulation_strength"
+    - "parameter_overhead"
+    - "validity_scores"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_performance"
+    tags: ["v4", "film", "micro_modulation", "validity"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  
+# Output configuration
+output:
+  output_dir: "logs/V4"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "response_validity"  # Focus on validity improvement
+  greater_is_better: true
+
+# Hardware requirements (minimal)
+hardware:
+  min_gpu_memory_gb: 14       # Lower requirements due to minimal overhead
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+
+# FiLM parameter monitoring
+film_monitoring:
+  enabled: true
+  monitor_frequency: 25
+  
+  # Parameter statistics to track
+  parameter_stats:
+    - "gamma_mean"
+    - "gamma_std"
+    - "gamma_min"
+    - "gamma_max"
+    - "beta_mean"
+    - "beta_std"
+    - "beta_magnitude"
+    
+  # Clipping statistics
+  clipping_stats:
+    - "gamma_clipped_count"
+    - "beta_clipped_count"
+    - "parameter_saturation"
+    
+  # Modulation effectiveness
+  effectiveness_metrics:
+    - "modulation_impact"
+    - "feature_diversity"
+    - "activation_changes"
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/V4/training.log"
+  log_film_parameters: true
+  log_validity_metrics: true
+  log_format_compliance: true
+  debug_modulation_effects: false  # Detailed debugging (expensive)
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.001
+  
+  # FiLM-specific safety
+  parameter_saturation_threshold: 0.8  # Alert if >80% parameters saturated
+  identity_drift_threshold: 0.2       # Alert if drifting too far from identity
+  auto_reset_on_instability: true     # Reset parameters if unstable

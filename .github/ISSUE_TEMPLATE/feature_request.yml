@@ -1,0 +1,162 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for BEM
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in improving BEM! Please provide detailed information about your feature request.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please confirm you've completed these steps
+      options:
+        - label: I've searched existing issues and this feature hasn't been requested
+          required: true
+        - label: I've reviewed the roadmap and documentation
+          required: true
+        - label: This feature aligns with BEM's research goals
+          required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What category does this feature belong to?
+      options:
+        - Core Architecture
+        - Expert Routing
+        - Training Pipeline
+        - Evaluation Framework
+        - Performance Optimization
+        - Safety & Security
+        - Documentation
+        - Developer Tools
+        - API/Interface
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: |
+        Describe the problem or limitation you've encountered...
+        - What is currently difficult or impossible?
+        - Who would benefit from this feature?
+        - How does this align with research goals?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: |
+        Provide a detailed description of how you envision this feature working...
+        - What would the API look like?
+        - How would users interact with it?
+        - What would be the expected behavior?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Approaches
+      description: Have you considered alternative solutions?
+      placeholder: |
+        Describe any alternative approaches you've considered...
+        - Why did you choose the proposed solution over alternatives?
+        - Are there existing workarounds?
+
+  - type: textarea
+    id: research_impact
+    attributes:
+      label: Research Impact
+      description: How would this feature impact BEM research capabilities?
+      placeholder: |
+        Describe the research implications...
+        - New research directions enabled
+        - Improved experimental capabilities
+        - Performance or accuracy benefits
+        - Comparison with existing methods
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Considerations
+      description: Technical details about potential implementation
+      placeholder: |
+        If you have ideas about implementation...
+        - Which components would need modification?
+        - Potential technical challenges?
+        - Performance implications?
+        - Breaking changes required?
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: What's your assessment of implementation complexity?
+      options:
+        - Low (minor changes, few components affected)
+        - Medium (moderate changes, multiple components)
+        - High (major architectural changes)
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Usage Examples
+      description: Provide examples of how this feature would be used
+      placeholder: |
+        ```python
+        # Example usage of the proposed feature
+        from bem_core import NewFeature
+        
+        # How users would interact with it
+        feature = NewFeature(config)
+        result = feature.process(data)
+        ```
+      render: python
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you interested in contributing to this feature?
+      options:
+        - label: I'm willing to implement this feature
+        - label: I can help with testing and validation
+        - label: I can contribute research insights
+        - label: I can help with documentation
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Any relevant papers, articles, or resources
+      placeholder: |
+        Include any relevant academic papers, blog posts, or other references...
+        - Research papers supporting this approach
+        - Similar implementations in other projects
+        - Theoretical background
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: |
+        Any additional context, mockups, diagrams, or information that would help...

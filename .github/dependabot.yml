@@ -1,0 +1,134 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "nathanrice"
+    assignees:
+      - "nathanrice"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    # Group ML/AI related packages
+    groups:
+      ml-core:
+        patterns:
+          - "torch*"
+          - "transformers*"
+          - "tokenizers*"
+          - "datasets*"
+          - "accelerate*"
+          - "peft*"
+          - "xformers*"
+      data-science:
+        patterns:
+          - "numpy*"
+          - "scipy*"
+          - "pandas*"
+          - "scikit-learn*"
+          - "matplotlib*"
+          - "seaborn*"
+      web-frameworks:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "starlette*"
+          - "pydantic*"
+      testing:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "hypothesis*"
+      linting:
+        patterns:
+          - "black*"
+          - "isort*"
+          - "flake8*"
+          - "mypy*"
+          - "bandit*"
+    # Version update strategy
+    versioning-strategy: "increase"
+    # Security updates
+    insecure-external-code-execution: "deny"
+    # Ignore specific updates that might break compatibility
+    ignore:
+      # Pin torch version to avoid CUDA compatibility issues
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+      # Pin transformers to avoid breaking model compatibility
+      - dependency-name: "transformers"
+        update-types: ["version-update:semver-major"]
+      # Ignore development dependencies with frequent updates
+      - dependency-name: "pre-commit"
+        update-types: ["version-update:semver-patch"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday" 
+      time: "07:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "nathanrice"
+    assignees:
+      - "nathanrice"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+    # Group related actions
+    groups:
+      testing-actions:
+        patterns:
+          - "actions/checkout*"
+          - "actions/setup-python*"
+          - "actions/upload-artifact*"
+          - "actions/download-artifact*"
+      security-actions:
+        patterns:
+          - "github/codeql-action*"
+          - "trufflesecurity/trufflehog*"
+          - "aquasecurity/trivy-action*"
+
+  # Docker (if Dockerfile exists)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "nathanrice"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "docker"
+
+# Global configuration for all ecosystems
+registries: {}
+
+# Enable security updates
+security-updates:
+  enabled: true
+  priority: "high"
+
+# Notification settings (optional)
+notifications:
+  # Notify on security updates
+  security-updates: true
+  # Don't spam on every update
+  dependency-updates: false

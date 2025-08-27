@@ -1,0 +1,106 @@
+base_config: performance_variant.yaml
+name: mission_b_living_model
+version: '1.0'
+model:
+  base_model: bem_v13_anchor
+  update_type: controller_only
+  shadow_mode: true
+  canary_gating: true
+  auto_rollback: true
+online_learning:
+  update_frequency: 5
+  ewc_lambda: 0.1
+  prox_lambda: 0.05
+  replay_buffer_size: 10000
+  replay_ratio: 0.3
+  drift_monitors:
+    kl_divergence_threshold: 0.1
+    sigma_cap_threshold: 2.0
+    gradient_norm_threshold: 10.0
+shadow_mode:
+  warmup_prompts: 1000
+  canary_check_frequency: 50
+  activation_threshold: 0.95
+  rollback_threshold: 0.85
+training:
+  batch_size: 16
+  learning_rate: 1e-5
+  gradient_accumulation_steps: 2
+  max_gradient_norm: 1.0
+  memory_strength: 1000
+  task_boundary_detection: true
+  rehearsal_strategy: reservoir_sampling
+data:
+  feedback_stream: data/feedback_stream.jsonl
+  canary_suite: eval/canaries.yaml
+  injection_scenarios:
+  - new_api_signature
+  - format_change
+  - domain_shift
+metrics:
+  primary:
+  - time_to_fix
+  - aggregate_improvement
+  - canary_pass_rate
+  secondary:
+  - kl_drift
+  - replay_hit_rate
+  - rollback_count
+  - latency_p50
+  - memory_usage
+acceptance:
+  max_time_to_fix: 1000
+  min_aggregate_improvement: 1.0
+  soak_test_duration: 24h
+  zero_rollback_steady_state: true
+  max_latency_overhead: 10
+ablations:
+  no_ewc: false
+  no_prox: false
+  replay_sizes:
+  - 1000
+  - 5000
+  - 10000
+  - 20000
+  update_cadences:
+  - 1
+  - 5
+  - 20
+  skip_bem_bandit: true
+risk_mitigation:
+  slow_credit_assignment:
+    error_tags_as_features: true
+    reward_shaping: true
+  catastrophic_drift:
+    canary_sensitivity_increase: 1.2
+    auto_rollback_enabled: true
+    checkpoint_frequency: 100
+resources:
+  gpu_memory: 24GB
+  stream_processing: real_time
+  checkpoint_storage: 100GB
+  estimated_time: 14 days
+timeline:
+  d0_7: Wire signals, guards, fake-live stream
+  d8_21: Soak tests, cadence sweeps
+  d22_45: Multi-domain streams, bandit for skip-BEM
+  d46_60: Live-like eval summary + gates
+statistical:
+  bootstrap_samples: 10000
+  paired_test: true
+  fdr_correction: true
+  confidence_interval: 0.95
+  multiple_runs: 3
+safety:
+  canary_suites:
+  - eval/basic_canaries.yaml
+  - eval/safety_canaries.yaml
+  - eval/performance_canaries.yaml
+  monitoring_dashboards:
+  - drift_metrics
+  - performance_metrics
+  - error_rates
+  alert_thresholds:
+    error_rate_spike: 2.0
+    latency_spike: 1.5
+    memory_leak: 1.2

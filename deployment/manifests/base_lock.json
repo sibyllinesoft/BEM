@@ -1,0 +1,19 @@
+{
+  "models": {
+    "TinyLlama/TinyLlama-1.1B-Chat-v1.0": {
+      "hash": "legacy",
+      "output_dir": "unknown",
+      "parameter_count": "1.1B",
+      "transformers_version": "unknown",
+      "download_timestamp": null
+    },
+    "microsoft/DialoGPT-small": {
+      "hash": "bc89924fb0d05c9eabe2e901fba28571c76a820be8d2418c73160d05a7a6283f",
+      "output_dir": "models/base",
+      "parameter_count": 124439808,
+      "transformers_version": "4.55.4",
+      "download_timestamp": 1755976043.0464692
+    }
+  },
+  "last_updated": 1755976045.481324
+}

@@ -1,0 +1,161 @@
+base_config: performance_variant.yaml
+name: mission_e_long_memory
+version: '1.0'
+model:
+  base_model: bem_v13_anchor
+  memory_system: titans_infini_hybrid
+  ssm_coupling: true
+  bem_gated_writes: true
+  bem_biased_eviction: true
+memory:
+  ltm_type: compressive
+  ltm_size: 4096
+  compression_ratio: 8
+  write_policy: bem_gated
+  eviction_policy: bem_biased
+  chunk_sticky: true
+  ssm_type: mamba
+  ssm_hidden_size: 1024
+  ssm_coupling_strength: 0.5
+bem_coupling:
+  gate_threshold: 0.7
+  eviction_scoring: bem_importance
+  write_patterns:
+  - high_bem_score
+  - novel_information
+  - cross_reference_potential
+  eviction_patterns:
+  - low_bem_score
+  - redundant_information
+  - temporal_decay
+training:
+  method: joint_optimization
+  batch_size: 16
+  learning_rate: 2e-5
+  memory_lr: 1e-5
+  num_epochs: 30
+  memory_training:
+    compression_loss_weight: 1.0
+    reconstruction_loss_weight: 0.5
+    bem_alignment_loss_weight: 0.3
+data:
+  long_context_data:
+  - needle_in_haystack
+  - multi_hop_reasoning
+  - document_qa
+  - code_understanding
+  - conversation_history
+  context_lengths:
+  - 8192
+  - 16384
+  - 32768
+  - 65536
+  - 131072
+  - 262144
+  - 512000
+  eval_suites:
+  - eval/suites/long_context.yml
+  - eval/suites/needle_haystack.yml
+  - eval/suites/multi_hop.yml
+metrics:
+  primary:
+  - em_f1_vs_length
+  - perplexity_spike
+  - kv_hit_percent
+  secondary:
+  - write_evict_stats
+  - memory_utilization
+  - compression_quality
+  - latency_scaling
+  - vram_efficiency
+acceptance:
+  min_context_length: 131072
+  ci_positive_long_tasks: true
+  max_perplexity_spike: 1.2
+  max_latency_overhead: 15
+  memory_stability: true
+baselines:
+  kv_only:
+    description: Standard KV cache only
+    max_context: 32768
+  eviction_bias:
+    description: KV cache with BEM-biased eviction
+    eviction_strategy: bem_scored
+  titans_baseline:
+    description: TITANS memory without BEM integration
+    memory_size: 4096
+  infini_baseline:
+    description: Infini-attention without BEM integration
+    memory_size: 4096
+ablations:
+  memory_systems:
+  - titans_only
+  - infini_only
+  - hybrid_titans_infini
+  write_policies:
+  - write_policy_off
+  - random_write
+  - bem_gated_write
+  eviction_policies:
+  - fifo_eviction
+  - lru_eviction
+  - bem_biased_eviction
+  attention_types:
+  - attention_only
+  - ssm_only
+  - attention_ssm_hybrid
+risk_mitigation:
+  memory_stability:
+    chunk_sticky_modulation: true
+    spectral_clamps: true
+    gradient_clipping: 1.0
+  memory_abuse:
+    write_rate_limiting: true
+    safety_gates: true
+    memory_leak_detection: true
+resources:
+  gpu_memory: 80GB
+  training_gpus: 2x80GB
+  development_gpu: 24GB
+  estimated_time: 14 days
+timeline:
+  d0_7: Memory tensor + writer (decay/gate), eviction scorer baseline
+  d8_21: 128k runs; spike analysis
+  d22_45: "256k\u2013512k; ablations"
+  d46_60: Promote + integrate with router
+statistical:
+  bootstrap_samples: 10000
+  paired_test: true
+  fdr_correction: true
+  random_seeds:
+  - 1
+  - 2
+  - 3
+  length_stratified_analysis: true
+vram_management:
+  fixed_vram_budget: true
+  gradient_checkpointing: true
+  mixed_precision: bf16
+  memory_efficient_attention: true
+optimization:
+  kernel_fusion: true
+  attention_optimization: flash_attention_2
+  memory_mapping: optimized
+  prefetching: true
+integration:
+  router_compatibility: true
+  safety_compatibility: true
+  online_learning_compatibility: true
+  sep_compatibility: true
+advanced:
+  adaptive_compression:
+    dynamic_ratio: true
+    content_aware: true
+  memory_hierarchy:
+    l1_cache: kv_cache
+    l2_memory: compressed
+    l3_storage: archived
+  cross_attention_memory:
+    enabled: true
+    memory_keys: compressed_representations
+    attention_mechanism: bem_weighted

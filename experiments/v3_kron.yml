@@ -1,0 +1,229 @@
+# PT3 Kronecker @ W_down - V3 Experiment Configuration
+# Expected: +0.5–1.5% chrF/BLEU, latency within gate, one site only
+
+name: "v3_kronecker_w_down"
+version: "1.0"
+description: "Kronecker factorization at W_down attachment point with fused kernel optimization"
+
+# Base configuration
+base_config: "experiments/v13_anchor.yml"
+experiment_type: "performance_variant"
+variant_id: "V3"
+
+# Model architecture
+model:
+  base_model: "microsoft/DialoGPT-small"  # Placeholder - replace with actual base
+  hidden_size: 768
+  num_layers: 12
+  num_attention_heads: 12
+  intermediate_size: 3072  # Standard 4x expansion for FFN
+
+# Kronecker Factorization Configuration
+kronecker:
+  enabled: true
+  attachment_site: "W_down"  # Fixed to W_down only as specified
+  
+  # Factorization parameters
+  u_rank: 8                 # Rank of U factor
+  v_rank: 8                 # Rank of V factor
+  u_dim: 64                 # First dimension factor
+  v_dim: 64                 # Second dimension factor (u_dim * v_dim should ≤ intermediate_size)
+  
+  # Fused kernel configuration
+  use_fused_kernel: true    # Use custom CUDA kernel when available
+  block_size: 128           # Block size for memory tiling
+  memory_efficient: true    # Enable memory-efficient implementation
+  fallback_to_pytorch: true # Fallback if CUDA kernels unavailable
+  
+  # Initialization strategy  
+  init_method: "svd"        # SVD initialization for stable factors
+  init_scale: 0.1           # Conservative scaling
+  svd_rank_ratio: 0.9       # Use 90% of SVD energy for initialization
+  
+  # Regularization
+  orthogonal_reg: 0.01      # Orthogonality regularization for factors
+  diversity_reg: 0.001      # Diversity regularization between factors
+  nuclear_norm_reg: 0.001   # Nuclear norm regularization for low-rank structure
+  
+  # Spectral constraints
+  max_singular_value: 1.0   # Spectral clamp for stability
+  fro_budget: 0.8           # Conservative Frobenius budget
+  condition_number_threshold: 100.0  # Maximum allowed condition number
+
+# Training configuration
+training:
+  learning_rate: 5e-5
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 1000
+  warmup_steps: 100
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+  
+  # Specialized for Kronecker factors
+  factor_learning_rate: 1e-4  # Separate LR for U/V factors
+  use_separate_optimizers: true
+  orthogonalization_frequency: 10  # Re-orthogonalize every N steps
+  
+  # Learning rate scheduling
+  scheduler_type: "linear"
+  lr_scheduler_kwargs: {}
+  
+  # Kronecker-specific regularization weights
+  kronecker_reg_weight: 0.1
+  orthogonal_loss_weight: 0.01
+  diversity_loss_weight: 0.001
+
+# Data configuration
+data:
+  train_file: "data/train.jsonl"
+  validation_file: "data/val.jsonl"
+  test_file: "data/test.jsonl"
+  max_seq_length: 512
+  preprocessing:
+    add_special_tokens: true
+    truncation: true
+    padding: "max_length"
+
+# Budget constraints (±5% params/FLOPs)
+budget_constraints:
+  parameter_tolerance: 0.05     # ±5%
+  flop_tolerance: 0.05         # ±5%
+  memory_tolerance: 0.10       # ±10% for intermediate activations
+  latency_tolerance: 0.05      # ±5% latency
+  enforce_constraints: true
+  abort_on_violation: true
+  
+  # Kronecker-specific constraints
+  max_factor_condition_number: 100.0
+  min_effective_rank: 4        # Minimum effective rank for factors
+
+# Evaluation configuration
+evaluation:
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_steps: 500
+  logging_steps: 50
+  
+  # Performance gates for Kronecker
+  performance_gates:
+    slice_b_ci_threshold: 0.0     # CI > 0 required
+    chrf_bleu_improvement: 0.005  # +0.5% minimum
+    latency_threshold: 1.05       # ≤5% latency increase
+    numerical_stability: 1e-4     # Numerical stability threshold
+  
+  # Metrics focused on text generation quality
+  metrics:
+    - "exact_match"
+    - "f1_score"
+    - "bleu"
+    - "chrf"
+    - "rouge_l"
+    - "latency_p50"
+    - "latency_p95"
+    - "kronecker_condition_number"
+    - "factor_orthogonality"
+    - "effective_rank"
+
+# Numerical stability monitoring
+numerical_monitoring:
+  enabled: true
+  check_frequency: 50  # Check every N steps
+  metrics:
+    - "condition_number"
+    - "singular_values"
+    - "orthogonality_error"
+    - "numerical_precision_loss"
+    - "gradient_norms"
+  
+  thresholds:
+    max_condition_number: 100.0
+    min_singular_value: 1e-6
+    max_gradient_norm: 10.0
+    orthogonality_tolerance: 1e-3
+
+# Kernel optimization
+kernel_optimization:
+  numerics_tolerance: 1e-3      # Tolerance vs FP16 reference
+  enable_autotuning: true       # Auto-tune block sizes
+  profile_kernels: false        # Profile kernel performance
+  validate_against_reference: true  # Validate against PyTorch implementation
+  
+# Telemetry and monitoring
+telemetry:
+  enabled: true
+  log_frequency: 10
+  metrics_to_log:
+    - "kronecker_loss"
+    - "orthogonal_loss"
+    - "diversity_loss"
+    - "condition_numbers"
+    - "singular_values"
+    - "factor_norms"
+    - "kernel_performance"
+    - "numerical_precision"
+  
+  wandb:
+    enabled: false
+    project: "bem_v13_performance"
+    tags: ["v3", "kronecker", "w_down", "fused_kernel"]
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  
+# Output configuration
+output:
+  output_dir: "logs/V3"
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "chrf"  # Focus on chrF for text generation
+  greater_is_better: true
+
+# Hardware requirements
+hardware:
+  min_gpu_memory_gb: 18     # Slightly higher for factor storage
+  preferred_gpu: "A100"
+  mixed_precision: "fp16"
+  gradient_checkpointing: false
+  cuda_version: ">=11.0"    # Required for fused kernels
+
+# CUDA kernel configuration
+cuda_kernels:
+  enabled: true
+  kernel_path: "bem/kernels/"
+  auto_compile: true
+  optimization_level: "O3"
+  use_tensor_cores: true
+  
+  # Kernel-specific settings
+  kronecker_kernel:
+    enabled: true
+    block_size: 128
+    shared_memory_kb: 48
+    max_threads_per_block: 1024
+
+# Logging and debugging
+logging:
+  level: "INFO"
+  log_file: "logs/V3/training.log"
+  log_kernel_performance: true
+  log_numerical_stability: true
+  log_factor_evolution: true
+  debug_kronecker_computation: false  # Detailed debugging (expensive)
+
+# Safety checks
+safety:
+  enable_overflow_detection: true
+  enable_gradient_monitoring: true
+  enable_numerical_checks: true
+  max_consecutive_failures: 5
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.001
+  
+  # Kronecker-specific safety
+  auto_fallback_on_instability: true
+  condition_number_emergency_threshold: 1000.0

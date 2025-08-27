@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BEM Fleet Multi-Mission Workflow Automation System -->
+<!-- Integrates with existing TODO.md workflows and extends for parallel execution -->
+
+<workflows project="bem-fleet" version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- Global Configuration -->
+  <global>
+    <base_model>bem_v13_anchor</base_model>
+    <evaluation_standard>paired_bca_fdr</evaluation_standard>
+    <statistical_confidence>0.95</statistical_confidence>
+    <random_seeds>1,2,3,4,5</random_seeds>
+    <bootstrap_samples>10000</bootstrap_samples>
+  </global>
+
+  <!-- Enhanced Bootstrap Workflow -->
+  <workflow name="fleet_bootstrap" description="Initialize all 5 missions with shared infrastructure">
+    <env id="E0">
+      <desc>Fleet environment setup with parallel mission support</desc>
+      <commands>
+        <cmd>source .venv/bin/activate</cmd>
+        <cmd>pip install -U torch transformers accelerate peft xformers faiss-cpu einops sacrebleu statsmodels pyyaml rich mlflow wandb</cmd>
+        <cmd>pip install -U matplotlib seaborn plotly dash tensorboard</cmd>
+        <cmd>python bem/kernels/build.py --check-numerics --tol 1e-3 --out logs/kernels.json</cmd>
+        <cmd>python scripts/record_env.py --out dist/repro_manifest_fleet.json</cmd>
+        <cmd>python scripts/setup_parallel_infrastructure.py --missions 5 --out logs/parallel_setup.json</cmd>
+      </commands>
+      <make_sure>
+        <item>All kernels within numeric tolerance; CUDA visible across all GPUs</item>
+        <item>Parallel infrastructure configured for 5 concurrent missions</item>
+        <item>Fleet reproduction manifest saved with mission configurations</item>
+      </make_sure>
+    </env>
+  </workflow>
+
+  <!-- Mission A: Enhanced Agentic Planner Workflow -->
+  <workflow name="mission_A_agentic_planner_enhanced" extends="mission_A_agentic_planner">
+    <build id="A0">
+      <desc>Enhanced data preparation with compositional task generation</desc>
+      <commands>
+        <cmd>python data/compose_tasks.py --out data/comp_tasks.jsonl --diversity high --size 20000</cmd>
+        <cmd>python bem/router/synthesize_traces.py --experts Retrieve,Reason,Formal,Plan,ToolCall,Summarize --out data/router_traces.jsonl</cmd>
+        <cmd>python data/generate_real_multistep.py --sources github,stackoverflow,papers --out data/real_multistep.jsonl --size 10000</cmd>
+        <cmd>python eval/setup_index_variants.py --base indices/clean.faiss --variants shuffled,corrupt,adversarial</cmd>
+      </commands>
+      <parallel_safe>true</parallel_safe>
+    </build>
+    
+    <run id="A1">
+      <desc>Parallel BC and PG training with statistical validation</desc>
+      <commands>
+        <cmd parallel="true">python train.py --exp experiments/mission_a_agentic_planner.yml --phase bc --seeds 1,2,3,4,5 --log_dir logs/MA_AR0</cmd>
+        <cmd>python evaluate.py --ckpt logs/MA_AR0/best.pt --suite eval/suites/comp.yml --slice both --latency --out logs/MA_AR0/eval.json</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_a_agentic_planner.yml --phase pg --seeds 1,2,3,4,5 --log_dir logs/MA_AR1</cmd>
+        <cmd>python evaluate.py --ckpt logs/MA_AR1/best.pt --suite eval/suites/comp.yml --slice both --latency --out logs/MA_AR1/eval.json</cmd>
+        <cmd>python eval/index_swap.py --ckpt logs/MA_AR1/best.pt --indices indices/clean.faiss,indices/shuffled.faiss,indices/corrupt.faiss --out logs/MA_AR1/indexswap.json</cmd>
+      </commands>
+      <make_sure>
+        <item>Plan length ≤3 maintained; flip-rate stable across seeds</item>
+        <item>KV-hit% ≥ baseline; monotonicity preserved under index swaps</item>
+        <item>Latency p50 within +15% of v1.3 baseline</item>
+      </make_sure>
+      <resource_requirements>
+        <gpu_memory>80GB</gpu_memory>
+        <parallel_gpus>2</parallel_gpus>
+      </resource_requirements>
+    </run>
+    
+    <ablations id="A2">
+      <desc>Comprehensive ablation studies</desc>
+      <commands>
+        <cmd parallel="true">python train.py --exp experiments/mission_a_agentic_planner.yml --ablation horizon_sweep --values 1,2,3 --log_dir logs/MA_ablation_horizon</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_a_agentic_planner.yml --ablation no_hysteresis --log_dir logs/MA_ablation_no_hyst</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_a_agentic_planner.yml --ablation no_trpo --log_dir logs/MA_ablation_no_trpo</cmd>
+        <cmd>python analysis/ablation_analysis.py --base_dir logs/MA --out logs/MA_ablation_summary.json</cmd>
+      </commands>
+    </ablations>
+    
+    <statistical_validation id="A3">
+      <desc>Statistical analysis and promotion decision</desc>
+      <commands>
+        <cmd>python analysis/stats.py --pairs logs/MA_AR1/eval.json --baseline logs/baseline_v13/eval.json --bootstrap 10000 --bca --paired --fdr families.yaml --out analysis/MA_stats.json</cmd>
+        <cmd>python analysis/promote.py --stats analysis/MA_stats.json --gates gates_mission_a.yaml --out analysis/MA_promotion.json</cmd>
+        <cmd>python analysis/generate_mission_report.py --mission A --stats analysis/MA_stats.json --out reports/mission_a_report.md</cmd>
+      </commands>
+    </statistical_validation>
+  </workflow>
+
+  <!-- Mission B: Enhanced Living Model Workflow -->
+  <workflow name="mission_B_living_model_enhanced" extends="mission_B_living_model">
+    <preparation id="B0">
+      <desc>Online learning infrastructure setup</desc>
+      <commands>
+        <cmd>python bem/online/setup_shadow_mode.py --base_model checkpoints/v13.pt --out logs/MB_shadow_setup.json</cmd>
+        <cmd>python data/generate_failure_scenarios.py --types api_change,format_shift,domain_drift --out data/failure_scenarios.jsonl</cmd>
+        <cmd>python eval/setup_canaries.py --comprehensive --out eval/canaries_comprehensive.yaml</cmd>
+      </commands>
+    </preparation>
+    
+    <run id="B1">
+      <desc>Shadow mode with comprehensive monitoring</desc>
+      <commands>
+        <cmd>python bem/online/warmup.py --in checkpoints/v13.pt --out logs/MB/warm.ckpt</cmd>
+        <cmd parallel="true">python bem/online/run_stream.py --ckpt logs/MB/warm.ckpt --config experiments/mission_b_living_model.yml --signals data/feedback_stream.jsonl --log_dir logs/MB/stream</cmd>
+        <cmd monitor="continuous">python bem/online/monitor_drift.py --log_dir logs/MB/stream --alert_thresholds drift_thresholds.json</cmd>
+        <cmd>python eval/canary_eval.py --ckpt logs/MB/post_update.pt --suite eval/canaries_comprehensive.yaml --out logs/MB/canary.json</cmd>
+      </commands>
+      <make_sure>
+        <item>Shadow mode active; updates only between prompts</item>
+        <item>Canary pass rate ≥95%; auto-rollback functional</item>
+        <item>Drift monitors within acceptable ranges</item>
+      </make_sure>
+      <monitoring>
+        <drift_kl_threshold>0.1</drift_kl_threshold>
+        <performance_drop_threshold>0.05</performance_drop_threshold>
+        <memory_leak_threshold>1.2</memory_leak_threshold>
+      </monitoring>
+    </run>
+    
+    <soak_testing id="B2">
+      <desc>24-hour soak test with failure injection</desc>
+      <commands>
+        <cmd duration="24h">python bem/online/soak_test.py --config experiments/mission_b_living_model.yml --inject_failures --log_dir logs/MB/soak</cmd>
+        <cmd>python analysis/soak_analysis.py --logs logs/MB/soak --out analysis/MB_soak.json</cmd>
+        <cmd>python eval/time_to_fix_analysis.py --logs logs/MB/soak --scenarios data/failure_scenarios.jsonl --out analysis/MB_ttf.json</cmd>
+      </commands>
+    </soak_testing>
+  </workflow>
+
+  <!-- Mission C: Enhanced Alignment Enforcer Workflow -->
+  <workflow name="mission_C_alignment_enforcer_enhanced" extends="mission_C_alignment_enforcer">
+    <preparation id="C0">
+      <desc>Safety infrastructure and red team preparation</desc>
+      <commands>
+        <cmd>python bem/safety/setup_orthogonal_basis.py --layers all --dimension 64 --out configs/safety_basis.yaml</cmd>
+        <cmd>python eval/prepare_red_team_suite.py --comprehensive --categories 6 --out eval/suites/red_team_comprehensive.yml</cmd>
+        <cmd>python bem/safety/initialize_value_model.py --constitutional_ai_v2 --out models/value_model.pt</cmd>
+      </commands>
+    </preparation>
+    
+    <run id="C1">
+      <desc>Safety basis training with dynamic knob</desc>
+      <commands>
+        <cmd parallel="true">python train.py --exp experiments/mission_c_alignment_enforcer.yml --seeds 1,2,3,4,5 --log_dir logs/MC</cmd>
+        <cmd>python eval/violations.py --ckpt logs/MC/best.pt --suite eval/suites/red_team_comprehensive.yml --knob_sweep 0.0,0.3,0.6,1.0 --out logs/MC/safety_sweep.json</cmd>
+        <cmd>python evaluate.py --ckpt logs/MC/best.pt --suite eval/suites/main.yml --slice both --safety_knob_active --out logs/MC/eval.json</cmd>
+        <cmd>python eval/dynamic_modulation_test.py --ckpt logs/MC/best.pt --scenarios mid_dialogue --out logs/MC/dynamic_test.json</cmd>
+      </commands>
+      <make_sure>
+        <item>Violation reduction ≥30% across all categories</item>
+        <item>EM/F1 drop ≤1% on main evaluation suite</item>
+        <item>Orthogonality penalty holds; runtime knob functional</item>
+        <item>Dynamic modulation successful mid-dialogue</item>
+      </make_sure>
+    </run>
+    
+    <red_team_campaign id="C2">
+      <desc>Comprehensive red team evaluation</desc>
+      <commands>
+        <cmd parallel="true">python eval/red_team_campaign.py --ckpt logs/MC/best.pt --attacks all --adaptive --out logs/MC/red_team.json</cmd>
+        <cmd>python analysis/safety_analysis.py --results logs/MC/red_team.json --category_breakdown --out analysis/MC_safety.json</cmd>
+        <cmd>python eval/adversarial_robustness.py --ckpt logs/MC/best.pt --suite adversarial --out logs/MC/robustness.json</cmd>
+      </commands>
+    </red_team_campaign>
+  </workflow>
+
+  <!-- Mission D: Enhanced SEP Workflow -->
+  <workflow name="mission_D_sep_enhanced" extends="mission_D_sep">
+    <scrambler_setup id="D0">
+      <desc>Comprehensive scrambler ladder creation</desc>
+      <commands>
+        <cmd>python sep/make_scramblers.py --ladder comprehensive --bijective 5 --syntax 5 --semantic 5 --out configs/scramblers_comprehensive.yaml</cmd>
+        <cmd>python sep/test_scramblers.py --config configs/scramblers_comprehensive.yaml --inversion_test --out logs/MD_scrambler_test.json</cmd>
+      </commands>
+    </scrambler_setup>
+    
+    <run id="D1">
+      <desc>Phase-0 clamped training with progressive thaw</desc>
+      <commands>
+        <cmd parallel="true">python train.py --exp experiments/mission_d_sep.yml --phase phase0 --seeds 1,2,3,4,5 --log_dir logs/MD_SEP0</cmd>
+        <cmd>python analysis/sep_metrics.py --logs logs/MD_SEP0 --metrics rrs,ldc,mia --out analysis/MD_phase0_metrics.json</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_d_sep.yml --phase thaw --seeds 1,2,3,4,5 --log_dir logs/MD_SEPt</cmd>
+        <cmd>python analysis/sep_metrics.py --logs logs/MD_SEPt --metrics rrs,ldc,mia,quality --out analysis/MD_thaw_metrics.json</cmd>
+      </commands>
+      <make_sure>
+        <item>Phase-0: ≤5% BLEU/chrF loss; compute overhead ≤2x</item>
+        <item>Post-thaw: RRS↑, LDC↓, net quality neutral or positive</item>
+        <item>No representation collapse; inversion resistance maintained</item>
+      </make_sure>
+    </run>
+    
+    <integration_testing id="D2">
+      <desc>BEM integration and stability testing</desc>
+      <commands>
+        <cmd>python bem/integration/test_sep_bem.py --sep_model logs/MD_SEPt/best.pt --bem_model checkpoints/v13.pt --out logs/MD_integration.json</cmd>
+        <cmd>python eval/code_stability_test.py --model logs/MD_SEPt/best.pt --suite code_tasks --out logs/MD_code_stability.json</cmd>
+        <cmd>python eval/plan_alignment_test.py --model logs/MD_SEPt/best.pt --router_model logs/MA_AR1/best.pt --out logs/MD_plan_alignment.json</cmd>
+      </commands>
+    </integration_testing>
+  </workflow>
+
+  <!-- Mission E: Enhanced Long-Memory Workflow -->
+  <workflow name="mission_E_long_memory_enhanced" extends="mission_E_long_memory">
+    <memory_setup id="E0">
+      <desc>Memory system initialization and configuration</desc>
+      <commands>
+        <cmd>python bem/memory/init_memory.py --style titans_infini_hybrid --size 4096 --compression_ratio 8 --out configs/memory_comprehensive.yaml</cmd>
+        <cmd>python bem/memory/init_eviction.py --baseline snapkv --bem_biased --out configs/evict_comprehensive.yaml</cmd>
+        <cmd>python bem/memory/test_memory_system.py --config configs/memory_comprehensive.yaml --validation_suite --out logs/ME_memory_test.json</cmd>
+      </commands>
+    </memory_setup>
+    
+    <run id="E1">
+      <desc>Length sweep with memory system comparison</desc>
+      <commands>
+        <cmd parallel="true">python train.py --exp experiments/mission_e_long_memory.yml --variant memory_on --seeds 1,2,3 --log_dir logs/ME_LTM_on</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_e_long_memory.yml --variant kv_only --seeds 1,2,3 --log_dir logs/ME_KV_only</cmd>
+        <cmd parallel="true">python train.py --exp experiments/mission_e_long_memory.yml --variant eviction_bias --seeds 1,2,3 --log_dir logs/ME_evict_bias</cmd>
+        <cmd>python evaluate.py --ckpt logs/ME_LTM_on/best.pt --suite eval/suites/long_context.yml --lengths 8k,32k,64k,128k,256k,512k --fixed_vram --out logs/ME_LTM_on/eval.json</cmd>
+        <cmd>python evaluate.py --ckpt logs/ME_KV_only/best.pt --suite eval/suites/long_context.yml --lengths 8k,32k,64k,128k,256k,512k --fixed_vram --out logs/ME_KV_only/eval.json</cmd>
+        <cmd>python evaluate.py --ckpt logs/ME_evict_bias/best.pt --suite eval/suites/long_context.yml --lengths 8k,32k,64k,128k,256k,512k --fixed_vram --out logs/ME_evict_bias/eval.json</cmd>
+      </commands>
+      <make_sure>
+        <item>Memory system stable across all context lengths</item>
+        <item>Bounded perplexity spikes; p50 latency ≤ +15%</item>
+        <item>Write/evict statistics properly logged and analyzed</item>
+        <item>VRAM usage remains within fixed budget</item>
+      </make_sure>
+      <resource_requirements>
+        <gpu_memory>80GB</gpu_memory>
+        <parallel_gpus>2</parallel_gpus>
+        <max_context_length>512000</max_context_length>
+      </resource_requirements>
+    </run>
+    
+    <integration_testing id="E2">
+      <desc>Router integration and SSM coupling validation</desc>
+      <commands>
+        <cmd>python bem/integration/test_router_memory.py --router_model logs/MA_AR1/best.pt --memory_model logs/ME_LTM_on/best.pt --out logs/ME_router_integration.json</cmd>
+        <cmd>python bem/memory/test_ssm_coupling.py --model logs/ME_LTM_on/best.pt --coupling_strength 0.5 --out logs/ME_ssm_coupling.json</cmd>
+        <cmd>python eval/index_swap_memory.py --model logs/ME_LTM_on/best.pt --memory_config configs/memory_comprehensive.yaml --out logs/ME_index_swap.json</cmd>
+      </commands>
+    </integration_testing>
+  </workflow>
+
+  <!-- Cross-Mission Integration Workflow -->
+  <workflow name="cross_mission_integration">
+    <pairwise_integration id="I1">
+      <desc>Test pairwise mission compatibility</desc>
+      <commands>
+        <cmd>python integration/test_router_online.py --router logs/MA_AR1/best.pt --online logs/MB/post_update.pt --out logs/integration_AB.json</cmd>
+        <cmd>python integration/test_router_memory.py --router logs/MA_AR1/best.pt --memory logs/ME_LTM_on/best.pt --out logs/integration_AE.json</cmd>
+        <cmd>python integration/test_safety_overlay.py --models logs/M*/best.pt --safety logs/MC/best.pt --out logs/integration_C_all.json</cmd>
+        <cmd>python integration/test_sep_compatibility.py --sep logs/MD_SEPt/best.pt --other_models logs/M*/best.pt --out logs/integration_D_all.json</cmd>
+      </commands>
+    </pairwise_integration>
+    
+    <full_system_integration id="I2">
+      <desc>Full fleet integration testing</desc>
+      <commands>
+        <cmd>python integration/assemble_fleet.py --config bem_fleet_architecture.yml --models logs/M*/best.pt --out models/bem_fleet_assembled.pt</cmd>
+        <cmd>python evaluate.py --ckpt models/bem_fleet_assembled.pt --suite eval/suites/comprehensive.yml --all_modes --out logs/fleet_comprehensive_eval.json</cmd>
+        <cmd>python integration/test_fleet_stability.py --fleet models/bem_fleet_assembled.pt --duration 1h --out logs/fleet_stability.json</cmd>
+      </commands>
+      <make_sure>
+        <item>All missions integrated without conflicts</item>
+        <item>No performance regressions in combined system</item>
+        <item>Safety overlay functional across all components</item>
+        <item>System stable under extended operation</item>
+      </make_sure>
+    </full_system_integration>
+  </workflow>
+
+  <!-- Enhanced Consolidation Workflow -->
+  <workflow name="consolidate_enhanced" extends="consolidate">
+    <collect_and_analyze id="T1">
+      <desc>Comprehensive data collection and statistical analysis</desc>
+      <commands>
+        <cmd>python analysis/collect_fleet_results.py --missions A,B,C,D,E --roots logs --out analysis/fleet_runs.jsonl</cmd>
+        <cmd>python analysis/stats.py --pairs analysis/fleet_runs.jsonl --baseline logs/baseline_v13 --bootstrap 10000 --bca --paired --fdr families_fleet.yaml --out analysis/fleet_stats.json</cmd>
+        <cmd>python analysis/cross_mission_analysis.py --stats analysis/fleet_stats.json --interactions --out analysis/fleet_interactions.json</cmd>
+        <cmd>python analysis/pareto_frontier.py --stats analysis/fleet_stats.json --dimensions performance,latency,safety,memory --out analysis/fleet_pareto.json</cmd>
+      </commands>
+      <make_sure>
+        <item>All mission results collected and validated</item>
+        <item>Statistical significance confirmed across missions</item>
+        <item>Cross-mission interactions analyzed</item>
+        <item>Pareto-optimal configurations identified</item>
+      </make_sure>
+    </collect_and_analyze>
+    
+    <promotion_decisions id="T2">
+      <desc>Mission promotion and fleet assembly decisions</desc>
+      <commands>
+        <cmd>python analysis/mission_promotion.py --stats analysis/fleet_stats.json --gates gates_fleet.yaml --out analysis/fleet_promotions.json</cmd>
+        <cmd>python fleet/assemble_promoted_fleet.py --promotions analysis/fleet_promotions.json --out models/bem_fleet_final.pt</cmd>
+        <cmd>python analysis/fleet_performance_summary.py --fleet models/bem_fleet_final.pt --out reports/fleet_final_report.md</cmd>
+      </commands>
+    </promotion_decisions>
+    
+    <paper_and_repro id="R0">
+      <desc>Paper preparation and reproduction package</desc>
+      <commands>
+        <cmd>python scripts/update_claims_from_fleet_stats.py --stats analysis/fleet_stats.json --out paper/fleet_claims.yaml</cmd>
+        <cmd>python analysis/build_fleet_tables.py --stats analysis/fleet_stats.json --interactions analysis/fleet_interactions.json --out paper/auto_fleet</cmd>
+        <cmd>python scripts/make_fleet_repro_pack.py --fleet models/bem_fleet_final.pt --runs logs --configs experiments --out dist/fleet_repro_manifest.json --script dist/run_fleet.sh</cmd>
+        <cmd>python paper/generate_fleet_paper.py --template paper/fleet_template.tex --data paper/auto_fleet --out paper/bem_fleet_paper.tex</cmd>
+      </commands>
+      <make_sure>
+        <item>All claims supported by statistical evidence</item>
+        <item>Paper tables and figures automatically generated</item>
+        <item>Complete reproduction package created</item>
+        <item>Paper ready for submission</item>
+      </make_sure>
+    </paper_and_repro>
+  </workflow>
+
+  <!-- Monitoring and Alerting Workflow -->
+  <workflow name="continuous_monitoring">
+    <setup_monitoring id="M1">
+      <desc>Set up continuous monitoring for all missions</desc>
+      <commands>
+        <cmd>python monitoring/setup_fleet_dashboard.py --missions A,B,C,D,E --out configs/fleet_dashboard.yaml</cmd>
+        <cmd>python monitoring/setup_alerts.py --thresholds monitoring/alert_thresholds.yaml --out configs/fleet_alerts.yaml</cmd>
+        <cmd background="true">python monitoring/fleet_monitor.py --config configs/fleet_dashboard.yaml --log_dir logs/monitoring</cmd>
+      </commands>
+    </setup_monitoring>
+    
+    <health_checks id="M2">
+      <desc>Periodic health checks and performance validation</desc>
+      <commands>
+        <cmd schedule="hourly">python monitoring/health_check.py --fleet models/bem_fleet_final.pt --quick --out logs/monitoring/health_$(date +%Y%m%d_%H).json</cmd>
+        <cmd schedule="daily">python monitoring/performance_validation.py --fleet models/bem_fleet_final.pt --comprehensive --out logs/monitoring/perf_$(date +%Y%m%d).json</cmd>
+        <cmd schedule="weekly">python monitoring/drift_analysis.py --baseline analysis/fleet_stats.json --current logs/monitoring --out logs/monitoring/drift_$(date +%Y%m%d).json</cmd>
+      </commands>
+    </health_checks>
+  </workflow>
+
+</workflows>
