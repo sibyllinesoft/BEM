@@ -476,7 +476,7 @@ If you use BEM in your research, please cite:
 - **Principal Investigator**: [Nathan Rice](https://github.com/nathanrice)
 - **Repository**: [github.com/sibyllinesoft/BEM](https://github.com/sibyllinesoft/BEM)
 - **Documentation**: [Complete Documentation Suite](docs/)
-- **Research Paper**: *Behavioral Expert Mixtures for Dynamic Neural Adaptation* (in preparation)
+- **Research Paper**: [BEM: Behavioral Expert Mixtures (PDF)](archive/paper/paper.pdf)  
 - **Paper Materials**: [LaTeX Source & Supplements](archive/paper/)
 
 ---
