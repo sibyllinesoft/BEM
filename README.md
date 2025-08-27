@@ -14,10 +14,9 @@ BEM (Bolt-on Expert Modules) is a cutting-edge research implementation exploring
 
 ## 🏢 Research Attribution
 
-**Principal Investigator:** [Nathan Rice](https://github.com/nathanrice)  
+**Principal Investigator:** [Nathan Rice](https://github.com/githubcustomerserviceistrash)  
 **Organization:** [Sibylline Software](https://sibylline.dev)  
-**GitHub:** [sibyllinesoft](https://github.com/sibyllinesoft)  
-**Contact:** [Sibylline Software](https://sibylline.dev/contact)
+**GitHub:** [sibyllinesoft](https://github.com/sibyllinesoft)
 
 This research represents ongoing work in dynamic neural architectures and adaptive machine learning systems at Sibylline Software.
 
@@ -470,45 +469,15 @@ If you use BEM in your research, please cite:
 }
 ```
 
-## 🔗 Links
+## 📄 Research Paper & Documentation
 
-- **Research Organization**: [Sibylline Software](https://sibylline.dev)
-- **Principal Investigator**: [Nathan Rice](https://github.com/nathanrice)
-- **Repository**: [github.com/sibyllinesoft/BEM](https://github.com/sibyllinesoft/BEM)
-- **Documentation**: [Complete Documentation Suite](docs/)
 - **Research Paper**: [Bolt-on Expert Modules (PDF)](archive/paper/paper.pdf)  
 - **Paper Materials**: [LaTeX Source & Supplements](archive/paper/)
+- **Documentation**: [Complete Documentation Suite](docs/)
 
 ---
 
 ## 📞 Contact
 
-For research inquiries, collaboration opportunities, or technical support:
-
+- **Issues & Support**: [GitHub Issues](https://github.com/sibyllinesoft/BEM/issues)
 - **Organization**: [Sibylline Software](https://sibylline.dev/contact)
-- **Research Lead**: [Nathan Rice](https://github.com/nathanrice)
-- **Issues**: [GitHub Issues](https://github.com/sibyllinesoft/BEM/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/sibyllinesoft/BEM/discussions)
-
----
-
-## 🏆 **Why Choose BEM Over All MoE-LoRA Alternatives?**
-
-**The Comprehensive Reality**: BEM has been rigorously evaluated against the **entire MoE-LoRA ecosystem** - not just Static LoRA, but AdaLoRA, LoRAHub, MoELoRA, Switch-LoRA, and QLoRA. The results are definitive.
-
-🎯 **[Run the Comprehensive Analysis](scripts/evaluation/run_comprehensive_competitor_benchmark.py)** to see BEM's consistent superiority across all 6 major competitors.
-
-**The Complete Evidence**: 
-- **7 methods evaluated** across 13 challenging scenarios
-- **BEM ranks #1** in accuracy, robustness, and production readiness
-- **12-42% better accuracy** than all competitors
-- **0 severe failures** for BEM vs **5-19 severe failures** for competitors
-- **Superior efficiency balance** - best performance per computational cost
-
-*When you need production-ready neural adaptation that doesn't fail under real-world conditions, BEM is the only choice that beats the entire field.*
-
----
-
-**[🏆 Comprehensive Analysis](scripts/evaluation/run_comprehensive_competitor_benchmark.py) • [🛡️ OOD Demo](scripts/demos/demo_ood_robustness.py) • [📊 Competitive Results](results/comprehensive_competitive_analysis/) • [🔬 Research Guide](docs/RESEARCH_GUIDE.md) • [🚀 Get Started](docs/QUICK_START.md) • [🤝 Contributing](CONTRIBUTING.md)**
-
-*BEM: The only MoE-LoRA method that consistently beats the entire competitive field.*
