@@ -1,4 +1,4 @@
-# BEM: Behavioral Expert Mixtures
+# BEM: Bolt-on Expert Modules
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
@@ -6,9 +6,9 @@
 [![Research](https://img.shields.io/badge/Research-Validated-green.svg)](docs/RESEARCH_METHODOLOGY.md)
 
 > **Advanced Dynamic Neural Architecture Research**  
-> *Dynamic expert routing with context-aware behavioral adaptation*
+> *Retrieval-aware dynamic parameter generation with hierarchical routing*
 
-BEM (Behavioral Expert Mixtures) is a cutting-edge research implementation exploring dynamic neural architectures that enable context-dependent expert routing and behavioral adaptation. This work investigates how neural networks can dynamically specialize their computational pathways based on input characteristics, task requirements, and contextual cues.
+BEM (Bolt-on Expert Modules) is a cutting-edge research implementation exploring dynamic neural architectures that enable context-dependent expert routing and retrieval-aware adaptation. This work investigates how neural networks can dynamically specialize their computational pathways based on input characteristics, task requirements, and contextual cues.
 
 ---
 
@@ -25,17 +25,17 @@ This research represents ongoing work in dynamic neural architectures and adapti
 
 ## 🔬 Research Overview
 
-### Core Innovation: Dynamic Behavioral Adaptation
+### Core Innovation: Retrieval-Aware Dynamic Parameter Generation
 
-BEM addresses fundamental limitations in current neural adaptation approaches by introducing **dynamic expert routing** - a system where neural networks can dynamically select, combine, and adapt their computational strategies based on real-time context analysis.
+BEM addresses fundamental limitations in current parameter-efficient fine-tuning (PEFT) methods by introducing **Bolt-on Expert Modules** - a system that dynamically generates context-dependent LoRA parameters through learned routing policies and retrieval-aware adaptation.
 
 #### Key Research Contributions
 
-- **Context-Aware Expert Selection**: Dynamic routing based on input characteristics
-- **Behavioral Adaptation**: Neural pathways that adapt to task-specific requirements  
+- **Controller-Generator Architecture**: Dynamic LoRA parameter generation based on input context
+- **Hierarchical Routing**: Efficient prefix → chunk → token routing while maintaining KV-cache safety
+- **Retrieval-Aware Adaptation**: Context-dependent weight modifications through learned policies  
+- **Spectral Governance**: Stable multi-BEM composition with controllable parameter interference
 - **Statistical Validation Framework**: Rigorous experimental methodology with bootstrap confidence intervals
-- **Multi-Modal Integration**: Support for text, vision, and cross-modal reasoning tasks
-- **Production-Ready Implementation**: Scalable architecture with comprehensive monitoring
 
 #### Problem Statement
 
@@ -461,7 +461,7 @@ If you use BEM in your research, please cite:
 
 ```bibtex
 @software{bem2024,
-  title={BEM: Behavioral Expert Mixtures for Dynamic Neural Adaptation},
+  title={Bolt-on Expert Modules: Retrieval-Aware Dynamic Low-Rank Adapters for Controllable Specialization},
   author={Nathan Rice},
   organization={Sibylline Software},
   year={2024},
@@ -476,7 +476,7 @@ If you use BEM in your research, please cite:
 - **Principal Investigator**: [Nathan Rice](https://github.com/nathanrice)
 - **Repository**: [github.com/sibyllinesoft/BEM](https://github.com/sibyllinesoft/BEM)
 - **Documentation**: [Complete Documentation Suite](docs/)
-- **Research Paper**: [BEM: Behavioral Expert Mixtures (PDF)](archive/paper/paper.pdf)  
+- **Research Paper**: [Bolt-on Expert Modules (PDF)](archive/paper/paper.pdf)  
 - **Paper Materials**: [LaTeX Source & Supplements](archive/paper/)
 
 ---
