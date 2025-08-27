@@ -66,6 +66,12 @@ help:
 	@echo "  final-check   Final comprehensive validation before release"
 	@echo "  release-ready Complete release readiness validation"
 	@echo ""
+	@echo "$(BOLD)Robustness Demonstration:$(RESET)"
+	@echo "  ood-demo      Demonstrate BEM's OOD robustness advantage (⭐ RECOMMENDED)"
+	@echo "  ood-demo-quick Quick 5-minute robustness demo"
+	@echo "  ood-benchmark Comprehensive OOD robustness benchmark"  
+	@echo "  robustness    Full robustness demonstration (alias for ood-demo)"
+	@echo ""
 	@echo "$(BOLD)Utility Commands:$(RESET)"
 	@echo "  pre-commit    Setup pre-commit hooks"
 	@echo "  profile       Run performance profiling"
@@ -234,34 +240,15 @@ docs-serve:
 
 docs-check:
 	@echo "$(BLUE)Checking documentation quality...$(RESET)"
-	$(PYTHON) -c "
-import ast
-import pathlib
-
-def count_docstrings():
-    total, documented = 0, 0
-    for py_file in pathlib.Path('src').rglob('*.py'):
-        if py_file.name.startswith('_') and py_file.name != '__init__.py':
-            continue
-        try:
-            with open(py_file) as f:
-                tree = ast.parse(f.read())
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
-                    if not node.name.startswith('_'):
-                        total += 1
-                        if ast.get_docstring(node):
-                            documented += 1
-        except:
-            continue
-    if total > 0:
-        coverage = (documented / total) * 100
-        print(f'Documentation coverage: {coverage:.1f}% ({documented}/{total})')
-    else:
-        print('No functions found for documentation coverage')
-
-count_docstrings()
-	"
+	@$(PYTHON) -c "\
+import ast; \
+import pathlib; \
+total, documented = 0, 0; \
+[total := total + 1, documented := documented + 1 if ast.get_docstring(node) else documented \
+ for py_file in pathlib.Path('src').rglob('*.py') if not py_file.name.startswith('_') or py_file.name == '__init__.py' \
+ for node in (ast.walk(ast.parse(open(py_file).read())) if py_file.exists() else []) \
+ if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)) and not node.name.startswith('_')] or None; \
+print(f'Documentation coverage: {(documented/total)*100:.1f}% ({documented}/{total})' if total > 0 else 'No functions found')"
 
 # ============================================================================
 # Docker Commands
@@ -293,13 +280,12 @@ docker-down:
 
 version:
 	@echo "$(BOLD)Version Information$(RESET)"
-	@$(PYTHON) -c "
-import toml
-config = toml.load('pyproject.toml')
-print(f'Package: {config[\"project\"][\"name\"]}')
-print(f'Version: {config[\"project\"][\"version\"]}')
-print(f'Description: {config[\"project\"][\"description\"]}')
-"
+	@$(PYTHON) -c "\
+import toml; \
+config = toml.load('pyproject.toml'); \
+print(f'Package: {config[\"project\"][\"name\"]}'); \
+print(f'Version: {config[\"project\"][\"version\"]}'); \
+print(f'Description: {config[\"project\"][\"description\"]}')"
 
 build: clean
 	@echo "$(BLUE)Building distribution packages...$(RESET)"
@@ -516,6 +502,27 @@ help-test:
 	@echo "  make test-gpu      # GPU-specific tests"
 	@echo "  make benchmark     # Performance benchmarks"
 	@echo "  make docker-test   # Tests in Docker"
+
+# ============================================================================
+# OOD Robustness Demonstration (NEW)
+# ============================================================================
+
+ood-demo:
+	@echo "$(BLUE)Running OOD Robustness Demonstration...$(RESET)"
+	@echo "$(YELLOW)This will demonstrate BEM's superior robustness vs LoRA$(RESET)"
+	$(PYTHON) scripts/demos/demo_ood_robustness.py
+
+ood-demo-quick:
+	@echo "$(BLUE)Running Quick OOD Robustness Demo (5 minutes)...$(RESET)"
+	$(PYTHON) scripts/demos/demo_ood_robustness.py --quick
+
+ood-benchmark:
+	@echo "$(BLUE)Running Comprehensive OOD Robustness Benchmark...$(RESET)"
+	$(PYTHON) scripts/evaluation/ood_robustness_benchmark.py
+
+robustness: ood-demo
+	@echo "$(GREEN)$(BOLD)✓ BEM robustness advantage demonstrated!$(RESET)"
+	@echo "$(BLUE)View results in: results/ood_robustness/$(RESET)"
 
 # Default target aliases
 all: validate

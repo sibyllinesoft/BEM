@@ -1,0 +1,122 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: adalora_baseline
+  description: AdaLoRA (Adaptive Budget Allocation for LoRA) - Dynamic rank allocation baseline
+  version: 1.0.0
+  created: '2025-08-27'
+  category: moe_lora_competitor
+  reference: "AdaLoRA: Adaptive Budget Allocation for Parameter-Efficient Fine-Tuning (ICLR 2023)"
+  
+model:
+  base_model: microsoft/DialoGPT-small
+  tokenizer: microsoft/DialoGPT-small
+  context_length: 4096
+  mixed_precision: true
+  torch_dtype: float16
+  architecture: adalora
+  
+  adalora_config:
+    # Dynamic rank allocation parameters
+    initial_rank: 8
+    target_rank: 16
+    beta1: 0.85
+    beta2: 0.85
+    
+    # Adaptive budget allocation
+    budget_allocation: adaptive
+    importance_scoring: singular_values
+    rank_update_frequency: 100
+    
+    # LoRA base parameters
+    sites:
+    - c_attn
+    - c_mlp
+    alpha: 16.0
+    dropout: 0.1
+    
+    # AdaLoRA specific regularization
+    regularization:
+      importance_regularization: true
+      rank_regularization_coeff: 0.1
+      weight_decay: 0.01
+
+training:
+  seeds: [1, 2, 3, 4, 5]
+  learning_rate: 5e-5
+  batch_size: 4
+  max_steps: 500
+  warmup_steps: 50
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 100
+  eval_steps: 100
+
+data:
+  train:
+    jsonl_path: data/train.jsonl
+  eval:
+    jsonl_path: data/val.jsonl
+  max_seq_length: 4096
+
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  - accuracy
+  - degradation_percentage
+  
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+      
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - parameter_efficiency
+  
+  robustness_metrics:
+  - severe_failure_rate
+  - stability_score
+  - worst_case_degradation
+
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+
+logging:
+  log_level: INFO
+  wandb_project: bem_moe_lora_comparison
+  wandb_tags:
+  - adalora
+  - adaptive_budget
+  - moe_lora_competitor
+  - parameter_efficiency
+  
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - rank_evolution
+  - budget_allocation
+  
+safety:
+  verify_adaptation_stability: true
+  validate_rank_bounds: true
+  validate_param_budget: true
+  max_param_increase_pct: 8.0

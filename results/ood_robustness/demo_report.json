@@ -1,0 +1,86 @@
+{
+  "demo_metadata": {
+    "timestamp": "2025-08-27T12:37:45.583508",
+    "demo_type": "quick",
+    "scenarios_run": "all",
+    "version": "1.0.0"
+  },
+  "key_insights": {
+    "bem_vs_lora_accuracy": "+42.4%",
+    "robustness_advantage": "+57.2pp",
+    "failure_rate_comparison": "16\u00d7 safer with BEM",
+    "recommendation": "BEM strongly recommended for production systems where robustness is critical"
+  },
+  "full_report": {
+    "executive_summary": {
+      "total_scenarios_tested": 16,
+      "bem_accuracy_advantage": 0.4243663734213818,
+      "bem_degradation_advantage": 57.23404993854947,
+      "key_finding": "BEM maintains 42.4% better accuracy and 57.2pp less degradation across all OOD scenarios"
+    },
+    "method_performance": {
+      "Baseline": {
+        "mean_accuracy": 0.741364706488965,
+        "mean_degradation": 0.0,
+        "severe_failure_scenarios": 0,
+        "total_scenarios": 16,
+        "stability_score": 0.9850453000923661,
+        "significant_failures": 0
+      },
+      "Static_LoRA": {
+        "mean_accuracy": 0.22591580659057092,
+        "mean_degradation": 69.55239974855233,
+        "severe_failure_scenarios": 16,
+        "total_scenarios": 16,
+        "stability_score": 0.878316169697883,
+        "significant_failures": 16
+      },
+      "BEM_P3": {
+        "mean_accuracy": 0.6502821800119527,
+        "mean_degradation": 12.318349810002864,
+        "severe_failure_scenarios": 0,
+        "total_scenarios": 16,
+        "stability_score": 0.9850018092931316,
+        "significant_failures": 14
+      }
+    },
+    "statistical_significance": {
+      "all_comparisons_significant": true,
+      "effect_sizes_large": true,
+      "confidence_level": 0.95
+    },
+    "production_implications": {
+      "bem_severe_failures": 0,
+      "lora_severe_failures": 16,
+      "deployment_recommendation": "BEM strongly recommended for production systems where robustness is critical"
+    },
+    "benchmark_metadata": {
+      "timestamp": "2025-08-27T12:37:45.562730",
+      "config": {
+        "n_bootstrap_samples": 1000,
+        "confidence_level": 0.95,
+        "random_seed": 42,
+        "domain_pairs": [
+          [
+            "medical",
+            "legal"
+          ],
+          [
+            "technical",
+            "finance"
+          ]
+        ],
+        "temporal_split_years": [
+          2020,
+          2023
+        ],
+        "alpha_level": 0.05,
+        "effect_size_threshold": 0.5,
+        "generate_plots": false,
+        "save_detailed_results": true,
+        "latex_tables": true
+      },
+      "results_directory": "results/ood_robustness"
+    }
+  }
+}

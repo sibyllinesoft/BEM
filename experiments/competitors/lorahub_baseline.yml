@@ -1,0 +1,146 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: lorahub_baseline
+  description: LoRAHub - Composable LoRA modules with expert routing
+  version: 1.0.0
+  created: '2025-08-27'
+  category: moe_lora_competitor
+  reference: "LoRAHub: Efficient Cross-Task Generalization via Dynamic LoRA Composition (arXiv 2023)"
+  
+model:
+  base_model: microsoft/DialoGPT-small
+  tokenizer: microsoft/DialoGPT-small
+  context_length: 4096
+  mixed_precision: true
+  torch_dtype: float16
+  architecture: lorahub
+  
+  lorahub_config:
+    # Composable LoRA experts
+    num_experts: 8
+    expert_rank: 8
+    composition_strategy: learned_weighting
+    
+    # Expert specialization
+    expert_initialization: random_orthogonal
+    expert_domains:
+    - general
+    - technical
+    - conversational
+    - formal
+    - creative
+    - analytical
+    - factual
+    - reasoning
+    
+    # Composition parameters
+    composition_network:
+      hidden_dim: 64
+      num_layers: 2
+      activation: gelu
+      dropout: 0.1
+    
+    # LoRA base parameters
+    sites:
+    - c_attn
+    - c_mlp
+    alpha: 16.0
+    dropout: 0.1
+    
+    # Routing and combination
+    routing:
+      top_k: 3  # Use top 3 experts per token
+      gating_network: linear
+      load_balancing: true
+      load_balance_coeff: 0.01
+
+training:
+  seeds: [1, 2, 3, 4, 5]
+  learning_rate: 5e-5
+  batch_size: 4
+  max_steps: 500
+  warmup_steps: 50
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 100
+  eval_steps: 100
+  
+  # LoRAHub specific training
+  composition_learning:
+    enabled: true
+    composition_lr: 1e-4
+    expert_lr: 5e-5
+    balance_loss_weight: 0.1
+
+data:
+  train:
+    jsonl_path: data/train.jsonl
+  eval:
+    jsonl_path: data/val.jsonl
+  max_seq_length: 4096
+
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  - accuracy
+  - degradation_percentage
+  
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+      
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - expert_utilization
+  - composition_overhead
+  
+  robustness_metrics:
+  - severe_failure_rate
+  - stability_score
+  - worst_case_degradation
+  - expert_diversity_score
+
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+
+logging:
+  log_level: INFO
+  wandb_project: bem_moe_lora_comparison
+  wandb_tags:
+  - lorahub
+  - composable_lora
+  - expert_routing
+  - moe_lora_competitor
+  
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - expert_weights
+  - composition_patterns
+  - routing_decisions
+  
+safety:
+  verify_expert_utilization: true
+  validate_composition_bounds: true
+  validate_param_budget: true
+  max_param_increase_pct: 10.0

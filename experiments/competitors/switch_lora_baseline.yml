@@ -1,0 +1,138 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: switch_lora_baseline
+  description: Switch-LoRA - Switch Transformer inspired sparse LoRA activation
+  version: 1.0.0
+  created: '2025-08-27'
+  category: moe_lora_competitor
+  reference: "Switch-LoRA: Efficient Sparse Expert Routing for Parameter-Efficient Fine-Tuning"
+  
+model:
+  base_model: microsoft/DialoGPT-small
+  tokenizer: microsoft/DialoGPT-small
+  context_length: 4096
+  mixed_precision: true
+  torch_dtype: float16
+  architecture: switch_lora
+  
+  switch_lora_config:
+    # Switch Transformer parameters
+    num_experts: 16
+    expert_rank: 4  # Smaller rank but more experts
+    top_k: 1  # Switch routing - only one expert per token
+    
+    # Expert configuration
+    expert_config:
+      initialization: xavier_uniform
+      expert_dropout: 0.1
+      expert_normalization: layer_norm
+      
+    # Switch routing
+    switch_routing:
+      routing_jitter: 0.01
+      expert_capacity_factor: 1.0
+      drop_tokens: true
+      auxiliary_loss_weight: 0.001
+      
+    # LoRA base parameters
+    sites:
+    - c_attn
+    - c_mlp
+    alpha: 16.0
+    dropout: 0.1
+    
+    # Efficiency optimizations
+    efficiency:
+      sparse_expert_computation: true
+      dynamic_capacity: true
+      expert_parallelism: true
+
+training:
+  seeds: [1, 2, 3, 4, 5]
+  learning_rate: 5e-5
+  batch_size: 4
+  max_steps: 500
+  warmup_steps: 50
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 100
+  eval_steps: 100
+  
+  # Switch specific training
+  switch_training:
+    expert_capacity_training: true
+    routing_z_loss_weight: 0.001
+    load_balancing_loss_weight: 0.001
+
+data:
+  train:
+    jsonl_path: data/train.jsonl
+  eval:
+    jsonl_path: data/val.jsonl
+  max_seq_length: 4096
+
+evaluation:
+  metrics:
+  - EM
+  - F1
+  - BLEU
+  - chrF
+  - accuracy
+  - degradation_percentage
+  
+  slices:
+    slice_a:
+      name: Retrieval-Strong
+      type: retrieval_strong
+      coverage_threshold: 0.8
+      consistency_threshold: 0.8
+    slice_b:
+      name: Full
+      type: full
+      
+  performance_metrics:
+  - p50_latency_ms
+  - p95_latency_ms
+  - throughput_tokens_per_sec
+  - vram_usage_gb
+  - flops_efficiency
+  - expert_sparsity
+  
+  robustness_metrics:
+  - severe_failure_rate
+  - stability_score
+  - worst_case_degradation
+  - routing_consistency
+
+system:
+  device: cuda
+  mixed_precision: true
+  gradient_checkpointing: false
+  monitor_vram: true
+  monitor_latency: true
+  deterministic: true
+  torch_deterministic: true
+
+logging:
+  log_level: INFO
+  wandb_project: bem_moe_lora_comparison
+  wandb_tags:
+  - switch_lora
+  - sparse_experts
+  - efficiency_focused
+  - moe_lora_competitor
+  
+  log_metrics:
+  - loss
+  - eval_metrics
+  - system_telemetry
+  - expert_selection
+  - routing_entropy
+  - efficiency_metrics
+  
+safety:
+  verify_sparsity_patterns: true
+  validate_routing_decisions: true
+  validate_param_budget: true
+  max_param_increase_pct: 6.0

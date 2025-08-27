@@ -1,0 +1,297 @@
+base_config: performance_variant.yaml
+metadata:
+  experiment_id: OOD_robustness_comprehensive
+  description: Comprehensive out-of-distribution robustness evaluation demonstrating BEM's superiority over LoRA in realistic deployment scenarios
+  version: 1.3.0-robustness-comprehensive
+  created: '2024-08-27'
+  campaign: ood-robustness-evaluation
+  robustness_type: comprehensive_ood
+  hypothesis: BEM maintains performance under distribution shifts where LoRA fails catastrophically
+  
+# OOD Robustness Evaluation Settings
+robustness_evaluation:
+  enabled: true
+  
+  # Domain shift scenarios
+  domain_shifts:
+    - source: medical
+      target: legal
+      description: Medical QA to legal document analysis
+    - source: technical  
+      target: finance
+      description: Technical documentation to financial analysis
+    - source: academic
+      target: conversational
+      description: Academic papers to casual conversation
+    - source: formal
+      target: colloquial
+      description: Formal writing to informal speech
+    - source: scientific
+      target: journalistic
+      description: Scientific papers to news articles
+      
+  # Temporal shift scenarios  
+  temporal_shifts:
+    - train_period: 2018-2019
+      test_period: 2023-2024
+      gap_years: 4-5
+      description: Training on older data, testing on recent data
+    - train_period: 2020-2021
+      test_period: 2024
+      gap_years: 3-4
+      description: Pre-pandemic to post-pandemic shift
+      
+  # Adversarial robustness scenarios
+  adversarial_tests:
+    - type: paraphrase_attacks
+      description: Semantic-preserving paraphrases that fool models
+    - type: synonym_substitution
+      description: Replacing words with synonyms to test robustness
+    - type: word_order_perturbation
+      description: Changing word order while preserving meaning
+    - type: character_level_noise
+      description: Typos and character-level perturbations
+    - type: semantic_adversarials
+      description: Semantically similar but contextually different inputs
+
+# Model configurations for comprehensive MoE-LoRA comparison
+models:
+  baseline:
+    name: Baseline_No_Adaptation
+    base_model: microsoft/DialoGPT-small
+    adaptation: none
+    
+  static_lora:
+    name: Static_LoRA
+    base_model: microsoft/DialoGPT-small
+    adaptation: static_lora
+    lora_config:
+      rank: 8
+      alpha: 16
+      dropout: 0.1
+      target_modules: ["c_attn"]
+      
+  adalora:
+    name: AdaLoRA
+    base_model: microsoft/DialoGPT-small
+    adaptation: adalora
+    adalora_config:
+      initial_rank: 8
+      target_rank: 16
+      beta1: 0.85
+      beta2: 0.85
+      budget_allocation: adaptive
+      importance_scoring: singular_values
+      
+  lorahub:
+    name: LoRAHub
+    base_model: microsoft/DialoGPT-small
+    adaptation: lorahub
+    lorahub_config:
+      num_experts: 8
+      expert_rank: 8
+      composition_strategy: learned_weighting
+      top_k: 3
+      
+  moelora:
+    name: MoELoRA
+    base_model: microsoft/DialoGPT-small
+    adaptation: moelora
+    moelora_config:
+      num_experts: 8
+      expert_rank: 8
+      top_k: 2
+      gating_network:
+        type: sparse_gating
+        
+  switch_lora:
+    name: Switch_LoRA
+    base_model: microsoft/DialoGPT-small
+    adaptation: switch_lora
+    switch_lora_config:
+      num_experts: 16
+      expert_rank: 4
+      top_k: 1
+      
+  qlora:
+    name: QLoRA
+    base_model: microsoft/DialoGPT-small
+    adaptation: qlora
+    qlora_config:
+      quantization_type: nf4
+      double_quantization: true
+      lora_rank: 16
+      lora_alpha: 32
+      
+  bem_p3:
+    name: BEM_P3_Dynamic
+    base_model: microsoft/DialoGPT-small
+    architecture: bem_v13_stack
+    bem_config:
+      sites:
+      - c_attn.out_proj
+      - c_mlp.down_proj
+      rank_schedule: [4, 8, 8, 8, 4]
+      num_experts: 3
+      alpha: 16.0
+      dropout: 0.1
+      routing:
+        chunk_size: 128
+        routing_type: learned
+        context_aware: true
+      dynamic_generation:
+        enabled: true
+        adaptation_strength: 0.8
+        
+# Training configuration
+training:
+  seeds: [1, 2, 3, 4, 5]  # Multiple seeds for statistical significance
+  learning_rate: 5e-5
+  batch_size: 4
+  max_steps: 500
+  warmup_steps: 50
+  optimizer: adamw
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  save_steps: 100
+  eval_steps: 100
+  
+# Evaluation configuration
+evaluation:
+  metrics:
+  - accuracy
+  - f1_score
+  - exact_match
+  - degradation_percentage
+  
+  statistical_analysis:
+    bootstrap_samples: 10000
+    confidence_level: 0.95
+    significance_level: 0.05
+    effect_size_threshold: 0.5
+    multiple_testing_correction: benjamini_hochberg
+    
+  robustness_metrics:
+  - severe_failure_rate  # % examples with >50% performance drop
+  - stability_score      # 1 - (std_dev / mean_performance)
+  - worst_case_degradation
+  - consistency_across_scenarios
+  
+# Data configuration for OOD scenarios
+data:
+  # Base datasets for different domains
+  medical_qa: data/domains/medical_qa.jsonl
+  legal_qa: data/domains/legal_qa.jsonl
+  technical_docs: data/domains/technical_docs.jsonl
+  finance_docs: data/domains/finance_docs.jsonl
+  academic_papers: data/domains/academic_papers.jsonl
+  conversational: data/domains/conversational.jsonl
+  
+  # Temporal split data
+  temporal_2018_2019: data/temporal/2018_2019_train.jsonl
+  temporal_2023_2024: data/temporal/2023_2024_test.jsonl
+  
+  # Adversarial test sets
+  adversarial_paraphrases: data/adversarial/paraphrases.jsonl
+  adversarial_synonyms: data/adversarial/synonyms.jsonl
+  adversarial_perturbations: data/adversarial/perturbations.jsonl
+  
+# Quality gates for comprehensive MoE-LoRA robustness validation
+quality_gates:
+  robustness_requirements:
+    enabled: true
+    
+    # BEM must outperform all competitors significantly
+    bem_vs_static_lora:
+      accuracy_advantage_min: 25.0  # BEM must be at least 25% better
+      degradation_advantage_min: 30.0  # BEM 30pp less degradation
+      failure_advantage_min: 15  # 15+ fewer severe failure scenarios
+      
+    bem_vs_adalora:
+      accuracy_advantage_min: 15.0  # BEM 15% better than AdaLoRA
+      degradation_advantage_min: 15.0  # BEM 15pp less degradation
+      
+    bem_vs_lorahub:
+      accuracy_advantage_min: 10.0  # BEM 10% better than LoRAHub
+      efficiency_competitive: true  # BEM must be competitively efficient
+      
+    bem_vs_moelora:
+      accuracy_advantage_min: 20.0  # BEM 20% better than MoELoRA
+      stability_advantage_min: 0.1  # BEM significantly more stable
+      
+    bem_vs_switch_lora:
+      accuracy_advantage_min: 12.0  # BEM 12% better than Switch-LoRA
+      robustness_advantage: true  # BEM better OOD robustness
+      
+    bem_vs_qlora:
+      accuracy_advantage_min: 30.0  # BEM 30% better than QLoRA
+      degradation_advantage_min: 25.0  # BEM 25pp less degradation
+    
+    # Overall competitive requirements
+    competitive_landscape:
+      bem_rank_requirement: 1  # BEM must rank #1 in all key metrics
+      statistical_significance: true  # All advantages must be statistically significant
+      effect_size_threshold: 0.5  # Large effect sizes required
+      
+    # Production deployment criteria
+    production_readiness:
+      max_bem_severe_failures: 2  # BEM max 2 severe failure scenarios
+      min_competitor_failures: 5  # Competitors must show ≥5 severe failures
+      stability_threshold: 0.90  # BEM stability score ≥0.90
+      robustness_consistency: true  # BEM must be consistently robust
+      
+# Output configuration
+outputs:
+  generate_plots: true
+  save_detailed_results: true
+  create_latex_tables: true
+  
+  visualizations:
+  - degradation_comparison_chart
+  - robustness_heatmap
+  - confidence_intervals_plot  
+  - failure_rate_comparison
+  - stability_analysis
+  
+  reports:
+  - comprehensive_robustness_report
+  - statistical_significance_summary
+  - production_deployment_recommendations
+  
+# Logging and monitoring
+logging:
+  log_level: INFO
+  wandb_project: bem_ood_robustness
+  wandb_tags:
+  - ood_robustness
+  - production_readiness
+  - bem_vs_lora
+  - distribution_shifts
+  
+  track_metrics:
+  - robustness_scores
+  - degradation_patterns
+  - failure_modes
+  - statistical_tests
+  
+# Reproducibility settings
+reproducibility:
+  benchmark_version: 1.0.0
+  random_seed: 42
+  environment_snapshot: true
+  dependency_versions: true
+  model_checksums: true
+  
+# Safety and validation
+safety:
+  validate_ood_scenarios: true
+  verify_statistical_methods: true
+  check_data_integrity: true
+  validate_baseline_performance: true
+  
+# Performance monitoring during evaluation
+monitoring:
+  track_compute_usage: true
+  monitor_memory_consumption: true
+  log_evaluation_time: true
+  detect_performance_anomalies: true
