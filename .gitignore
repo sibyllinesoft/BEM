@@ -397,6 +397,8 @@ yarn-error.log*
 
 # Archive directory (contains old/legacy files not needed in git)
 archive/
+# Exception: Include paper PDFs in archive
+!archive/paper/*.pdf
 
 # Backup files
 *.bak
