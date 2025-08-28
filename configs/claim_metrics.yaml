@@ -1,0 +1,252 @@
+# BEM Research Claims → Metrics Contract
+# Formal mapping of README claims to measurable metrics with statistical validation
+
+# ACCURACY ADVANTAGE CLAIMS (Core Performance)
+accuracy_claims:
+  static_lora_advantage:
+    claim: "BEM +41.7% better accuracy than Static LoRA"
+    metric: "em_score"
+    baseline_method: "static_lora"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 41.7
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 1.0  # Large effect size required
+    promotion_criteria:
+      - confidence_interval_excludes_zero: true
+      - median_improvement_ge_threshold: 20.0  # At least 20% for strong claim
+      - passes_production_slo: true
+    
+  adalora_advantage:
+    claim: "BEM +18.5% better accuracy than AdaLoRA"
+    metric: "em_score"
+    baseline_method: "adalora"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 18.5
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 0.8  # Medium-large effect size
+    
+  lorahub_advantage:
+    claim: "BEM +14.2% better accuracy than LoRAHub"
+    metric: "em_score"
+    baseline_method: "lorahub"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 14.2
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 0.7
+
+  moelora_advantage:
+    claim: "BEM +28.1% better accuracy than MoELoRA"
+    metric: "em_score"
+    baseline_method: "moelora"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 28.1
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 0.9
+
+  switch_lora_advantage:
+    claim: "BEM +12.8% better accuracy than Switch-LoRA"
+    metric: "em_score"
+    baseline_method: "switch_lora"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 12.8
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 0.6
+
+  qlora_advantage:
+    claim: "BEM +35.4% better accuracy than QLoRA"
+    metric: "em_score"
+    baseline_method: "qlora"
+    target_method: "bem_dynamic"
+    expected_improvement_pct: 35.4
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    minimum_effect_size_d: 1.0
+
+# ROBUSTNESS DEGRADATION CLAIMS (Distribution Shift Performance)
+robustness_claims:
+  static_lora_degradation:
+    claim: "BEM has 56.2pp better degradation resistance than Static LoRA"
+    metric: "degradation_percentage"
+    baseline_method: "static_lora"
+    target_method: "bem_dynamic"
+    expected_improvement_pp: 56.2
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+    
+  adalora_degradation:
+    claim: "BEM has 22.3pp better degradation resistance than AdaLoRA"
+    metric: "degradation_percentage"
+    baseline_method: "adalora"
+    target_method: "bem_dynamic"
+    expected_improvement_pp: 22.3
+    statistical_test: "paired_t_test"
+    significance_level: 0.05
+
+# DOMAIN SHIFT CLAIMS (Specific Distribution Shifts)
+domain_shift_claims:
+  domain_robustness_general:
+    claim: "BEM maintains ≤8% degradation in domain shifts while competitors show 18-63% drops"
+    metric: "domain_shift_degradation"
+    bem_max_degradation_pct: 8.0
+    competitor_min_degradation_pct: 18.0
+    statistical_test: "one_sample_t_test"
+    alternative: "less"  # BEM degradation < 8%
+    
+  temporal_robustness_general:
+    claim: "BEM shows 5-12% degradation in temporal shifts while competitors show 15-70% drops"
+    metric: "temporal_shift_degradation"
+    bem_max_degradation_pct: 12.0
+    competitor_min_degradation_pct: 15.0
+    statistical_test: "one_sample_t_test"
+    alternative: "less"
+    
+  adversarial_robustness_general:
+    claim: "BEM shows 6-15% degradation in adversarial scenarios while competitors show 12-50% drops"
+    metric: "adversarial_degradation"
+    bem_max_degradation_pct: 15.0
+    competitor_min_degradation_pct: 12.0
+    statistical_test: "one_sample_t_test"
+    alternative: "less"
+
+# PRODUCTION READINESS CLAIMS (SLO Requirements)
+production_claims:
+  inference_speed:
+    claim: "BEM maintains 95% of base model inference speed"
+    metric: "inference_speed_ratio"
+    target_speed_ratio: 0.95
+    statistical_test: "one_sample_t_test"
+    alternative: "greater"
+    
+  parameter_efficiency:
+    claim: "BEM achieves superior performance with +0.6M parameters"
+    metric: "parameter_count_millions"
+    target_parameter_count: 0.6
+    max_acceptable_parameters: 1.0
+    statistical_test: "one_sample_t_test"
+    alternative: "less"
+
+# STATISTICAL VALIDATION CONFIGURATION
+statistical_config:
+  bootstrap_config:
+    method: "bca"  # Bias-corrected and accelerated bootstrap
+    n_resamples: 10000
+    confidence_level: 0.95
+    random_seed: 42
+    
+  multiple_testing_correction:
+    method: "benjamini_hochberg"  # BH-FDR control
+    alpha: 0.05
+    
+  effect_size_thresholds:
+    small: 0.2
+    medium: 0.5
+    large: 0.8
+    very_large: 1.2
+    
+  minimum_sample_requirements:
+    per_condition: 5  # Minimum 5 seeds per experimental condition
+    per_shift_type: 3  # Minimum 3 shift variations per type
+    
+  promotion_rules:
+    accuracy_claims:
+      required_conditions:
+        - "confidence_interval_excludes_zero"
+        - "passes_significance_test"
+        - "meets_minimum_effect_size"
+        - "passes_production_slo"
+      auto_promote_threshold: 4  # All 4 conditions must be met
+      
+    robustness_claims:
+      required_conditions:
+        - "confidence_interval_in_claimed_range"
+        - "passes_significance_test"
+        - "consistent_across_shift_types"
+      auto_promote_threshold: 3
+      
+  demotion_rules:
+    conditions:
+      - "confidence_interval_includes_zero"
+      - "fails_significance_test"  
+      - "effect_size_below_threshold"
+      - "fails_production_slo"
+    auto_demote_threshold: 1  # Any single failure triggers demotion
+    
+  honesty_layer:
+    failed_claims_treatment: "appendix_with_explanation"
+    transparency_requirements:
+      - "report_all_attempted_validations"
+      - "highlight_failures_prominently"
+      - "provide_confidence_intervals_for_all_claims"
+      - "document_non_significant_results"
+
+# EXPERIMENTAL DESIGN CONSTRAINTS
+experimental_constraints:
+  baseline_implementations:
+    static_lora:
+      repo: "microsoft/LoRA"
+      version: "latest"
+      hyperparams: "fair_comparison"
+    adalora:
+      repo: "QingruZhang/AdaLoRA" 
+      version: "latest"
+      hyperparams: "fair_comparison"
+    lorahub:
+      repo: "sail-sg/lorahub"
+      version: "latest"
+      hyperparams: "fair_comparison"
+    moelora:
+      repo: "openbmb/MoELoRA"
+      version: "latest"
+      hyperparams: "fair_comparison"
+    switch_lora:
+      repo: "Switch-LoRA/official"
+      version: "latest"
+      hyperparams: "fair_comparison"
+    qlora:
+      repo: "artidoro/qlora"
+      version: "latest"
+      hyperparams: "fair_comparison"
+      
+  dataset_requirements:
+    domain_shifts:
+      - "medical_to_legal"
+      - "tech_to_finance"
+      - "academic_to_casual"
+    temporal_shifts:
+      - "pre_2020_to_2024"
+      - "2019_to_2024"
+    adversarial_types:
+      - "paraphrase_attacks"
+      - "synonym_substitution"
+      - "noise_injection"
+      
+  resource_constraints:
+    max_vram_gb: 40
+    max_runtime_hours: 72
+    required_seeds: 5
+    p95_latency_ms: 200  # Production SLO
+    
+# VALIDATION OUTPUTS
+validation_outputs:
+  promotion_table:
+    format: "latex_table"
+    columns: ["claim", "metric", "confidence_interval", "p_value", "effect_size", "promoted"]
+    
+  forest_plot:
+    format: "svg"
+    confidence_level: 0.95
+    include_baselines: true
+    
+  statistical_report:
+    format: "markdown" 
+    sections:
+      - "executive_summary"
+      - "claim_by_claim_analysis"
+      - "failed_validations" 
+      - "methodology"
+      - "recommendations"

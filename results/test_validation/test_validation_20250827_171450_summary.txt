@@ -1,0 +1,194 @@
+BEM Pipeline Test Validation Report
+==================================================
+
+Run ID: test_validation_20250827_171450
+Status: FAILED
+Duration: 0.7 seconds
+Python Version: 3.13.3 (main, Aug 14 2025, 11:53:40) [GCC 14.2.0]
+
+Dependencies:
+  Available: numpy
+  Missing: pytest, torch
+
+Test Results Summary:
+  Total files: 28
+  Passed: 0
+  Failed: 28
+  Errors: 0
+  Success rate: 0.0%
+
+Individual Test File Results:
+----------------------------------------
+❌ test_robustness_analysis.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_ablation_analysis.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_routing_auditor.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v13_performance_validation.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_unified_infrastructure.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_component_migration.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v11_pipeline.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_shift_generator.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_phase4_imports.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v13_comprehensive.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_vc0_imports.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v13_comprehensive_framework.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_spectral_monitor.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_framework_validation.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_retrieval_ablator.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_pipeline_core.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_configuration_system.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_comprehensive_validation.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_fused_kernels.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_evaluation_orchestrator.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_phase3_imports.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_imports.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_pipeline_integration.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v13_integration.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_paper_generation.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_statistical_validation.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_bem_v13_statistical_reproducibility.py: FAILED
+    /usr/bin/python3: No module named pytest
+❌ test_migration_suite.py: FAILED
+    /usr/bin/python3: No module named pytest
+
+Test Structure Analysis:
+------------------------------
+test_robustness_analysis.py:
+  Lines: 63
+  Has tests: Yes
+  Has mocks: No
+test_ablation_analysis.py:
+  Lines: 70
+  Has tests: Yes
+  Has mocks: No
+test_routing_auditor.py:
+  Lines: 625
+  Has tests: Yes
+  Has mocks: Yes
+test_bem_v13_performance_validation.py:
+  Lines: 1031
+  Has tests: Yes
+  Has mocks: Yes
+test_unified_infrastructure.py:
+  Lines: 738
+  Has tests: Yes
+  Has mocks: Yes
+test_component_migration.py:
+  Lines: 655
+  Has tests: Yes
+  Has mocks: Yes
+test_bem_v11_pipeline.py:
+  Lines: 831
+  Has tests: Yes
+  Has mocks: Yes
+test_shift_generator.py:
+  Lines: 460
+  Has tests: Yes
+  Has mocks: Yes
+test_phase4_imports.py:
+  Lines: 149
+  Has tests: Yes
+  Has mocks: No
+test_bem_v13_comprehensive.py:
+  Lines: 1191
+  Has tests: Yes
+  Has mocks: Yes
+test_vc0_imports.py:
+  Lines: 310
+  Has tests: Yes
+  Has mocks: No
+test_bem_v13_comprehensive_framework.py:
+  Lines: 2060
+  Has tests: Yes
+  Has mocks: Yes
+test_spectral_monitor.py:
+  Lines: 713
+  Has tests: Yes
+  Has mocks: Yes
+test_framework_validation.py:
+  Lines: 317
+  Has tests: Yes
+  Has mocks: Yes
+test_retrieval_ablator.py:
+  Lines: 851
+  Has tests: Yes
+  Has mocks: Yes
+test_pipeline_core.py:
+  Lines: 275
+  Has tests: Yes
+  Has mocks: Yes
+test_configuration_system.py:
+  Lines: 721
+  Has tests: Yes
+  Has mocks: Yes
+test_comprehensive_validation.py:
+  Lines: 137
+  Has tests: Yes
+  Has mocks: No
+test_fused_kernels.py:
+  Lines: 526
+  Has tests: Yes
+  Has mocks: No
+test_evaluation_orchestrator.py:
+  Lines: 756
+  Has tests: Yes
+  Has mocks: Yes
+test_phase3_imports.py:
+  Lines: 64
+  Has tests: Yes
+  Has mocks: No
+test_imports.py:
+  Lines: 115
+  Has tests: No
+  Has mocks: No
+  Issues: No test methods found
+test_pipeline_integration.py:
+  Lines: 699
+  Has tests: Yes
+  Has mocks: Yes
+test_bem_v13_integration.py:
+  Lines: 855
+  Has tests: Yes
+  Has mocks: Yes
+test_paper_generation.py:
+  Lines: 716
+  Has tests: Yes
+  Has mocks: Yes
+test_statistical_validation.py:
+  Lines: 593
+  Has tests: Yes
+  Has mocks: Yes
+test_bem_v13_statistical_reproducibility.py:
+  Lines: 1116
+  Has tests: Yes
+  Has mocks: Yes
+test_migration_suite.py:
+  Lines: 366
+  Has tests: No
+  Has mocks: No
+  Issues: No test methods found

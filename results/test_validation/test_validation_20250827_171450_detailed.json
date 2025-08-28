@@ -1,0 +1,621 @@
+{
+  "run_id": "test_validation_20250827_171450",
+  "start_time": "2025-08-27T17:14:50.938892",
+  "project_root": "/home/nathan/Projects/BEM",
+  "python_version": "3.13.3 (main, Aug 14 2025, 11:53:40) [GCC 14.2.0]",
+  "dependency_check": {
+    "available": [
+      "numpy"
+    ],
+    "missing": [
+      "pytest",
+      "torch"
+    ],
+    "all_available": false
+  },
+  "test_files_found": 28,
+  "structure_validation": {
+    "test_robustness_analysis.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 63
+      },
+      "issues": []
+    },
+    "test_ablation_analysis.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 70
+      },
+      "issues": []
+    },
+    "test_routing_auditor.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 625
+      },
+      "issues": []
+    },
+    "test_bem_v13_performance_validation.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 1031
+      },
+      "issues": []
+    },
+    "test_unified_infrastructure.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": true,
+        "line_count": 738
+      },
+      "issues": []
+    },
+    "test_component_migration.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": true,
+        "line_count": 655
+      },
+      "issues": []
+    },
+    "test_bem_v11_pipeline.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 831
+      },
+      "issues": []
+    },
+    "test_shift_generator.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 460
+      },
+      "issues": []
+    },
+    "test_phase4_imports.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 149
+      },
+      "issues": []
+    },
+    "test_bem_v13_comprehensive.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 1191
+      },
+      "issues": []
+    },
+    "test_vc0_imports.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 310
+      },
+      "issues": []
+    },
+    "test_bem_v13_comprehensive_framework.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 2060
+      },
+      "issues": []
+    },
+    "test_spectral_monitor.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 713
+      },
+      "issues": []
+    },
+    "test_framework_validation.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 317
+      },
+      "issues": []
+    },
+    "test_retrieval_ablator.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 851
+      },
+      "issues": []
+    },
+    "test_pipeline_core.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 275
+      },
+      "issues": []
+    },
+    "test_configuration_system.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": true,
+        "line_count": 721
+      },
+      "issues": []
+    },
+    "test_comprehensive_validation.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 137
+      },
+      "issues": []
+    },
+    "test_fused_kernels.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": false,
+        "line_count": 526
+      },
+      "issues": []
+    },
+    "test_evaluation_orchestrator.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 756
+      },
+      "issues": []
+    },
+    "test_phase3_imports.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 64
+      },
+      "issues": []
+    },
+    "test_imports.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": false,
+        "has_test_classes": false,
+        "has_test_methods": false,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 115
+      },
+      "issues": [
+        "No test methods found"
+      ]
+    },
+    "test_pipeline_integration.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 699
+      },
+      "issues": []
+    },
+    "test_bem_v13_integration.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 855
+      },
+      "issues": []
+    },
+    "test_paper_generation.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 716
+      },
+      "issues": []
+    },
+    "test_statistical_validation.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 593
+      },
+      "issues": []
+    },
+    "test_bem_v13_statistical_reproducibility.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": true,
+        "has_test_methods": true,
+        "has_docstring": true,
+        "has_setup": true,
+        "has_mock_usage": true,
+        "line_count": 1116
+      },
+      "issues": []
+    },
+    "test_migration_suite.py": {
+      "status": "valid",
+      "checks": {
+        "has_imports": true,
+        "has_test_classes": false,
+        "has_test_methods": false,
+        "has_docstring": true,
+        "has_setup": false,
+        "has_mock_usage": false,
+        "line_count": 366
+      },
+      "issues": [
+        "No test methods found"
+      ]
+    }
+  },
+  "test_results": [
+    {
+      "file": "test_robustness_analysis.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_ablation_analysis.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_routing_auditor.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v13_performance_validation.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_unified_infrastructure.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_component_migration.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v11_pipeline.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_shift_generator.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_phase4_imports.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v13_comprehensive.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_vc0_imports.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v13_comprehensive_framework.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_spectral_monitor.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_framework_validation.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_retrieval_ablator.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_pipeline_core.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_configuration_system.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_comprehensive_validation.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_fused_kernels.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_evaluation_orchestrator.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_phase3_imports.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_imports.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_pipeline_integration.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v13_integration.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_paper_generation.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_statistical_validation.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_bem_v13_statistical_reproducibility.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    },
+    {
+      "file": "test_migration_suite.py",
+      "status": "failed",
+      "return_code": 1,
+      "stdout": "",
+      "stderr": "/usr/bin/python3: No module named pytest\n",
+      "duration": "N/A"
+    }
+  ],
+  "end_time": "2025-08-27T17:14:51.658716",
+  "duration_seconds": 0.719824,
+  "total_test_files": 28,
+  "passed_test_files": 0,
+  "failed_test_files": 28,
+  "error_test_files": 0,
+  "success_rate": 0.0,
+  "status": "failed"
+}
